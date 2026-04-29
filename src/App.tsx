@@ -1,6 +1,13 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
-import { AnimatePresence } from "framer-motion";
+import {
+  BrowserRouter,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
+import { useEffect } from "react";
+import { AnimatePresence, LazyMotion, domAnimation } from "framer-motion";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -16,9 +23,28 @@ import Processing from "./pages/Processing";
 import Key from "./pages/Key";
 import Goodbye from "./pages/Goodbye";
 import CheckoutIdentify from "./pages/CheckoutIdentify";
+import CheckoutSummary from "./pages/CheckoutSummary";
+import CheckoutConfirm from "./pages/CheckoutConfirm";
+import CheckoutRate from "./pages/CheckoutRate";
+import CheckoutGoodbye from "./pages/CheckoutGoodbye";
+import TestErrors from "./pages/TestErrors";
+import TestAllScreens from "./pages/TestAllScreens";
+import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+const EscToHome = () => {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") navigate("/");
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [navigate]);
+  return null;
+};
 
 const AnimatedRoutes = () => {
   const location = useLocation();
@@ -36,6 +62,13 @@ const AnimatedRoutes = () => {
         <Route path="/key" element={<Key />} />
         <Route path="/goodbye" element={<Goodbye />} />
         <Route path="/checkout/identify" element={<CheckoutIdentify />} />
+        <Route path="/checkout/summary" element={<CheckoutSummary />} />
+        <Route path="/checkout/confirm" element={<CheckoutConfirm />} />
+        <Route path="/checkout/rate" element={<CheckoutRate />} />
+        <Route path="/checkout/goodbye" element={<CheckoutGoodbye />} />
+        <Route path="/test/errors" element={<TestErrors />} />
+        <Route path="/test/all-screens" element={<TestAllScreens />} />
+        <Route path="/admin" element={<Admin />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AnimatePresence>
@@ -48,9 +81,12 @@ const App = () => (
       <Toaster />
       <Sonner />
       <CheckInProvider>
-        <BrowserRouter>
-          <AnimatedRoutes />
-        </BrowserRouter>
+        <LazyMotion features={domAnimation}>
+          <BrowserRouter>
+            <EscToHome />
+            <AnimatedRoutes />
+          </BrowserRouter>
+        </LazyMotion>
       </CheckInProvider>
     </TooltipProvider>
   </QueryClientProvider>
