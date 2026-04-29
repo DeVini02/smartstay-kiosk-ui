@@ -7,7 +7,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import { useEffect } from "react";
-import { AnimatePresence, LazyMotion, domAnimation } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -81,12 +81,10 @@ const App = () => (
       <Toaster />
       <Sonner />
       <CheckInProvider>
-        <LazyMotion features={domAnimation}>
-          <BrowserRouter>
-            <EscToHome />
-            <AnimatedRoutes />
-          </BrowserRouter>
-        </LazyMotion>
+        <BrowserRouter>
+          <EscToHome />
+          <AnimatedRoutes />
+        </BrowserRouter>
       </CheckInProvider>
     </TooltipProvider>
   </QueryClientProvider>
