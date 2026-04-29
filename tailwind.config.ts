@@ -131,6 +131,16 @@ export default {
         spin: {
           to: { transform: "rotate(360deg)" },
         },
+        "spin-slow": {
+          to: { transform: "rotate(360deg)" },
+        },
+        shake: {
+          "0%, 100%": { transform: "translateX(0)" },
+          "20%": { transform: "translateX(-6px)" },
+          "40%": { transform: "translateX(6px)" },
+          "60%": { transform: "translateX(-4px)" },
+          "80%": { transform: "translateX(4px)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -141,6 +151,8 @@ export default {
         "scan-line": "scan-line 2.8s ease-in-out infinite",
         "success-ring": "success-ring 2.4s ease-out infinite",
         spin: "spin 1s linear infinite",
+        "spin-slow": "spin-slow 6s linear infinite",
+        shake: "shake 0.5s ease-in-out",
       },
     },
   },
