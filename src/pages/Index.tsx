@@ -1,16 +1,35 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { motion } from "framer-motion";
+import { TotemFrame } from "@/components/TotemFrame";
+import { AmbientBackground } from "@/components/AmbientBackground";
+import { ScreenHeader } from "@/components/ScreenHeader";
+import { AccessibilityFAB } from "@/components/AccessibilityFAB";
+import { screenTransition } from "@/lib/animations";
 
-// IMPORTANT: Fully REPLACE this with your own code
-const PlaceholderIndex = () => {
-  // PLACEHOLDER: Replace this entire return statement with the user's app.
-  // The inline background color is intentionally not part of the design system.
+const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: '#fcfbf8' }}>
-      <img data-lovable-blank-page-placeholder="REMOVE_THIS" src="/placeholder.svg" alt="Your app will live here!" />
-    </div>
+    <TotemFrame>
+      <AmbientBackground />
+      <AccessibilityFAB />
+      <div className="relative z-10 flex flex-col h-full">
+        <ScreenHeader />
+        <motion.section
+          variants={screenTransition}
+          initial="hidden"
+          animate="visible"
+          className="flex-1 flex flex-col items-center justify-center px-6 text-center"
+        >
+          <span className="text-label text-text-tertiary mb-3">FOUNDATION</span>
+          <h1 className="text-display text-text-primary mb-2">
+            Setup complete
+          </h1>
+          <p className="text-body text-text-secondary max-w-[260px]">
+            Design system, components and ambient canvas are ready. Screens
+            will land in the next prompt.
+          </p>
+        </motion.section>
+      </div>
+    </TotemFrame>
   );
 };
-
-const Index = PlaceholderIndex;
 
 export default Index;
