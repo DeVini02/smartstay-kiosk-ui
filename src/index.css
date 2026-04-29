@@ -40,6 +40,20 @@
     --ring: 252 95% 76%;
 
     --radius: 0.875rem;
+
+    /* Accessibility runtime tokens */
+    --font-scale: 1;
+    --text-secondary-opacity: 0.55;
+    --text-tertiary-opacity: 0.35;
+  }
+
+  body.high-contrast {
+    --text-secondary-opacity: 0.85;
+    --text-tertiary-opacity: 0.65;
+  }
+  body.high-contrast .glass,
+  body.high-contrast [class*="border-glass-border"] {
+    border-color: rgba(255, 255, 255, 0.22) !important;
   }
 }
 
