@@ -40,6 +40,20 @@
     --ring: 252 95% 76%;
 
     --radius: 0.875rem;
+
+    /* Accessibility runtime tokens */
+    --font-scale: 1;
+    --text-secondary-opacity: 0.55;
+    --text-tertiary-opacity: 0.35;
+  }
+
+  body.high-contrast {
+    --text-secondary-opacity: 0.85;
+    --text-tertiary-opacity: 0.65;
+  }
+  body.high-contrast .glass,
+  body.high-contrast [class*="border-glass-border"] {
+    border-color: rgba(255, 255, 255, 0.22) !important;
   }
 }
 
@@ -71,48 +85,56 @@
 }
 
 @layer components {
-  /* Typography helpers — keep weights to 400/500 only */
+  /* Typography helpers — weights 400/500 only. Sizes scale via --font-scale. */
   .text-display {
-    font-size: 26px;
+    font-size: calc(26px * var(--font-scale));
     font-weight: 500;
     letter-spacing: -0.4px;
     line-height: 1.15;
   }
   .text-heading {
-    font-size: 22px;
+    font-size: calc(22px * var(--font-scale));
     font-weight: 500;
     letter-spacing: -0.3px;
   }
   .text-title {
-    font-size: 17px;
+    font-size: calc(17px * var(--font-scale));
     font-weight: 500;
   }
   .text-button {
-    font-size: 15px;
+    font-size: calc(15px * var(--font-scale));
     font-weight: 500;
   }
   .text-body {
-    font-size: 14px;
+    font-size: calc(14px * var(--font-scale));
     font-weight: 400;
     line-height: 1.45;
   }
   .text-small {
-    font-size: 12px;
+    font-size: calc(12px * var(--font-scale));
     font-weight: 400;
   }
   .text-label {
-    font-size: 11px;
+    font-size: calc(11px * var(--font-scale));
     font-weight: 500;
     letter-spacing: 1.5px;
     text-transform: uppercase;
   }
   .text-mono-tiny {
-    font-size: 10px;
+    font-size: calc(10px * var(--font-scale));
     font-weight: 400;
     font-family: 'JetBrains Mono', monospace;
   }
   .font-mono {
     font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* High-contrast aware text utilities */
+  .text-text-secondary {
+    color: rgba(255, 255, 255, var(--text-secondary-opacity)) !important;
+  }
+  .text-text-tertiary {
+    color: rgba(255, 255, 255, var(--text-tertiary-opacity)) !important;
   }
 
   /* Glass surface base */

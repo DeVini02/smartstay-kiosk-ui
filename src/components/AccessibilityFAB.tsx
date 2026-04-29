@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Accessibility, Type, Contrast, Hand, Volume2 } from "lucide-react";
+import { Accessibility, Hand, Volume2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
@@ -9,33 +10,41 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
-import { useToast } from "@/hooks/use-toast";
+import { GhostButton } from "@/components/GhostButton";
+import {
+  useAccessibility,
+  type FontScaleLevel,
+} from "@/hooks/useAccessibility";
 
 export const AccessibilityFAB = () => {
   const [open, setOpen] = useState(false);
-  const [fontLevel, setFontLevel] = useState(0);
-  const [highContrast, setHighContrast] = useState(false);
-  const { toast } = useToast();
+  const { fontScale, setFontScale, highContrast, setHighContrast } =
+    useAccessibility();
 
   const notImplemented = () =>
-    toast({
-      title: "Em desenvolvimento",
-      description: "Este recurso estará disponível em breve.",
+    toast("Em desenvolvimento", {
+      description: "Disponível na próxima versão.",
     });
+
+  const fontLabels: { lvl: FontScaleLevel; size: string; label: string }[] = [
+    { lvl: 0, size: "13px", label: "Pequeno" },
+    { lvl: 1, size: "16px", label: "Padrão" },
+    { lvl: 2, size: "20px", label: "Grande" },
+  ];
 
   return (
     <>
       <motion.button
         whileTap={{ scale: 0.92 }}
         onClick={() => setOpen(true)}
-        aria-label="Acessibilidade"
+        aria-label="Abrir painel de acessibilidade"
         className="absolute top-4 right-4 z-50 w-12 h-12 rounded-full glass flex items-center justify-center text-white/85 hover:text-white"
       >
         <Accessibility size={20} aria-hidden="true" />
       </motion.button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="bg-bg-surface border-glass-border text-text-primary">
+        <DialogContent className="bg-bg-surface border-glass-border text-text-primary max-w-[360px] max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-heading text-white">
               Acessibilidade
@@ -45,51 +54,68 @@ export const AccessibilityFAB = () => {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex flex-col gap-4 mt-2">
-            <Row icon={<Type size={18} />} label="Tamanho da fonte">
+          <div className="flex flex-col gap-5 mt-2">
+            {/* Section 1: Font size */}
+            <Section title="Tamanho do texto">
               <div className="flex gap-2">
-                {[0, 1, 2].map((lvl) => (
+                {fontLabels.map((f) => (
                   <button
-                    key={lvl}
-                    onClick={() => setFontLevel(lvl)}
-                    aria-label={`Nível de fonte ${lvl + 1}`}
-                    className={`w-10 h-10 rounded-md border transition-colors ${
-                      fontLevel === lvl
+                    key={f.lvl}
+                    onClick={() => setFontScale(f.lvl)}
+                    aria-label={`Tamanho de texto ${f.label}`}
+                    aria-pressed={fontScale === f.lvl}
+                    className={`flex-1 h-14 rounded-md border transition-colors flex flex-col items-center justify-center ${
+                      fontScale === f.lvl
                         ? "bg-brand-gradient border-transparent text-white"
                         : "bg-glass-bg border-glass-border text-text-secondary"
                     }`}
                   >
-                    A
+                    <span
+                      style={{ fontSize: f.size, fontWeight: 500 }}
+                      aria-hidden="true"
+                    >
+                      A
+                    </span>
                   </button>
                 ))}
               </div>
-            </Row>
+            </Section>
 
-            <Row icon={<Contrast size={18} />} label="Alto contraste">
+            {/* Section 2: High contrast */}
+            <Section title="Alto contraste">
               <Switch
                 checked={highContrast}
                 onCheckedChange={setHighContrast}
                 aria-label="Alto contraste"
               />
-            </Row>
+            </Section>
 
-            <Row icon={<Hand size={18} />} label="Avatar Libras">
+            {/* Section 3: Libras */}
+            <Section title="Libras" badge="Beta">
               <button
-                onClick={notImplemented}
-                className="text-small text-brand-primary"
+                onClick={() => {
+                  notImplemented();
+                }}
+                className="flex items-center gap-2 text-small text-brand-primary"
               >
-                Ativar
+                <Hand size={16} />
+                Ativar avatar em Libras
               </button>
-            </Row>
+            </Section>
 
-            <Row icon={<Volume2 size={18} />} label="Guia por áudio">
-              <button
-                onClick={notImplemented}
-                className="text-small text-brand-primary"
-              >
-                Ativar
-              </button>
-            </Row>
+            {/* Section 4: Audio */}
+            <Section title="Áudio guiado" badge="Roadmap">
+              <div className="flex items-center gap-2">
+                <Volume2 size={16} className="text-text-secondary" />
+                <Switch
+                  onCheckedChange={(v) => v && notImplemented()}
+                  aria-label="Áudio guiado"
+                />
+              </div>
+            </Section>
+
+            {/* Section 5: Close */}
+            <GhostButton onClick={() => setOpen(false)}>Fechar</GhostButton>
           </div>
         </DialogContent>
       </Dialog>
@@ -97,22 +123,33 @@ export const AccessibilityFAB = () => {
   );
 };
 
-const Row = ({
-  icon,
-  label,
+const Section = ({
+  title,
+  badge,
   children,
 }: {
-  icon: React.ReactNode;
-  label: string;
+  title: string;
+  badge?: string;
   children: React.ReactNode;
 }) => (
-  <div className="flex items-center justify-between gap-4">
-    <div className="flex items-center gap-3">
-      <span className="text-text-secondary" aria-hidden="true">
-        {icon}
-      </span>
-      <span className="text-title text-text-primary">{label}</span>
+  <section className="flex flex-col gap-2">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <h3 className="text-title text-text-primary">{title}</h3>
+        {badge && (
+          <span
+            className="px-1.5 py-0.5 rounded-sm text-mono-tiny"
+            style={{
+              background: "rgba(167,139,250,0.12)",
+              border: "1px solid rgba(167,139,250,0.4)",
+              color: "#A78BFA",
+            }}
+          >
+            {badge}
+          </span>
+        )}
+      </div>
     </div>
-    {children}
-  </div>
+    <div className="flex items-center justify-between gap-3">{children}</div>
+  </section>
 );
