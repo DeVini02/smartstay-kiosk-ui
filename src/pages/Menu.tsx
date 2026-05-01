@@ -2,24 +2,24 @@ import { useNavigate } from "react-router-dom";
 import { ScreenShell } from "@/components/ScreenShell";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { GhostButton } from "@/components/GhostButton";
+import { useT } from "@/lib/i18n";
 
 const Menu = () => {
   const navigate = useNavigate();
+  const t = useT();
   return (
     <ScreenShell step={{ total: 6, current: 2 }}>
-      <h1 className="text-display text-text-primary mt-2">
-        Como podemos ajudar?
-      </h1>
+      <h1 className="text-display text-text-primary mt-2">{t("menu.title")}</h1>
 
       <div className="flex flex-col gap-3 mt-8">
         <PrimaryButton onClick={() => navigate("/reservation")}>
-          → Fazer check-in
+          {t("menu.checkin")}
         </PrimaryButton>
         <GhostButton onClick={() => navigate("/checkout/identify")}>
-          Fazer check-out
+          {t("menu.checkout")}
         </GhostButton>
-        <GhostButton>Informações do hotel</GhostButton>
-        <GhostButton>Chamar recepção</GhostButton>
+        <GhostButton>{t("menu.info")}</GhostButton>
+        <GhostButton>{t("menu.reception")}</GhostButton>
       </div>
     </ScreenShell>
   );

@@ -15,21 +15,23 @@ import {
   useAccessibility,
   type FontScaleLevel,
 } from "@/hooks/useAccessibility";
+import { useT } from "@/lib/i18n";
 
 export const AccessibilityFAB = () => {
   const [open, setOpen] = useState(false);
+  const t = useT();
   const { fontScale, setFontScale, highContrast, setHighContrast } =
     useAccessibility();
 
   const notImplemented = () =>
-    toast("Em desenvolvimento", {
-      description: "Disponível na próxima versão.",
+    toast(t("a11y.todo"), {
+      description: t("a11y.todo_desc"),
     });
 
   const fontLabels: { lvl: FontScaleLevel; size: string; label: string }[] = [
-    { lvl: 0, size: "13px", label: "Pequeno" },
-    { lvl: 1, size: "16px", label: "Padrão" },
-    { lvl: 2, size: "20px", label: "Grande" },
+    { lvl: 0, size: "13px", label: t("a11y.font_small") },
+    { lvl: 1, size: "16px", label: t("a11y.font_default") },
+    { lvl: 2, size: "20px", label: t("a11y.font_large") },
   ];
 
   return (
@@ -37,7 +39,7 @@ export const AccessibilityFAB = () => {
       <motion.button
         whileTap={{ scale: 0.92 }}
         onClick={() => setOpen(true)}
-        aria-label="Abrir painel de acessibilidade"
+        aria-label={t("a11y.open")}
         className="absolute top-4 right-4 z-50 w-12 h-12 rounded-full glass flex items-center justify-center text-white/85 hover:text-white"
       >
         <Accessibility size={20} aria-hidden="true" />
@@ -47,22 +49,21 @@ export const AccessibilityFAB = () => {
         <DialogContent className="bg-bg-surface border-glass-border text-text-primary max-w-[360px] max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-heading text-white">
-              Acessibilidade
+              {t("a11y.title")}
             </DialogTitle>
             <DialogDescription className="text-text-secondary text-body">
-              Ajuste a interface para suas preferências.
+              {t("a11y.desc")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="flex flex-col gap-5 mt-2">
-            {/* Section 1: Font size */}
-            <Section title="Tamanho do texto">
+            <Section title={t("a11y.font")}>
               <div className="flex gap-2">
                 {fontLabels.map((f) => (
                   <button
                     key={f.lvl}
                     onClick={() => setFontScale(f.lvl)}
-                    aria-label={`Tamanho de texto ${f.label}`}
+                    aria-label={t("a11y.font_aria", { label: f.label })}
                     aria-pressed={fontScale === f.lvl}
                     className={`flex-1 h-14 rounded-md border transition-colors flex flex-col items-center justify-center ${
                       fontScale === f.lvl
@@ -81,17 +82,15 @@ export const AccessibilityFAB = () => {
               </div>
             </Section>
 
-            {/* Section 2: High contrast */}
-            <Section title="Alto contraste">
+            <Section title={t("a11y.contrast")}>
               <Switch
                 checked={highContrast}
                 onCheckedChange={setHighContrast}
-                aria-label="Alto contraste"
+                aria-label={t("a11y.contrast")}
               />
             </Section>
 
-            {/* Section 3: Libras */}
-            <Section title="Libras" badge="Beta">
+            <Section title={t("a11y.libras")} badge="Beta">
               <button
                 onClick={() => {
                   notImplemented();
@@ -99,23 +98,21 @@ export const AccessibilityFAB = () => {
                 className="flex items-center gap-2 text-small text-brand-primary"
               >
                 <Hand size={16} />
-                Ativar avatar em Libras
+                {t("a11y.libras_btn")}
               </button>
             </Section>
 
-            {/* Section 4: Audio */}
-            <Section title="Áudio guiado" badge="Roadmap">
+            <Section title={t("a11y.audio")} badge="Roadmap">
               <div className="flex items-center gap-2">
                 <Volume2 size={16} className="text-text-secondary" />
                 <Switch
                   onCheckedChange={(v) => v && notImplemented()}
-                  aria-label="Áudio guiado"
+                  aria-label={t("a11y.audio_aria")}
                 />
               </div>
             </Section>
 
-            {/* Section 5: Close */}
-            <GhostButton onClick={() => setOpen(false)}>Fechar</GhostButton>
+            <GhostButton onClick={() => setOpen(false)}>{t("common.close")}</GhostButton>
           </div>
         </DialogContent>
       </Dialog>

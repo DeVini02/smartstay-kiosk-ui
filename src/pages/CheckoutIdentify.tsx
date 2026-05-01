@@ -6,9 +6,11 @@ import { ScreenShell } from "@/components/ScreenShell";
 import { GlassCard } from "@/components/GlassCard";
 import { GhostButton } from "@/components/GhostButton";
 import { breathingDot, pulseRing } from "@/lib/animations";
+import { useT } from "@/lib/i18n";
 
 const CheckoutIdentify = () => {
   const navigate = useNavigate();
+  const t = useT();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [cameraOk, setCameraOk] = useState<boolean | null>(null);
 
@@ -21,7 +23,7 @@ const CheckoutIdentify = () => {
           video: { facingMode: "user" },
           audio: false,
         });
-        if (cancelled) return stream.getTracks().forEach((t) => t.stop());
+        if (cancelled) return stream.getTracks().forEach((tr) => tr.stop());
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
           await videoRef.current.play().catch(() => {});
@@ -33,35 +35,30 @@ const CheckoutIdentify = () => {
     })();
     return () => {
       cancelled = true;
-      stream?.getTracks().forEach((t) => t.stop());
+      stream?.getTracks().forEach((tr) => tr.stop());
     };
   }, []);
 
   useEffect(() => {
     if (cameraOk !== true) return;
-    const t = setTimeout(() => navigate("/checkout/summary"), 4000);
-    return () => clearTimeout(t);
+    const tm = setTimeout(() => navigate("/checkout/summary"), 4000);
+    return () => clearTimeout(tm);
   }, [cameraOk, navigate]);
 
   return (
     <ScreenShell step={{ total: 4, current: 1 }}>
       <h1 className="text-display text-text-primary mt-2 leading-[1.15]">
-        Olhe para
-        <br />a câmera
+        {t("ci.title_1")}
+        <br />
+        {t("ci.title_2")}
       </h1>
-      <p className="text-body text-text-secondary mt-2">
-        Vamos te identificar pelo rosto cadastrado no check-in.
-      </p>
+      <p className="text-body text-text-secondary mt-2">{t("ci.subtitle")}</p>
 
       <div className="flex-1 flex flex-col items-center justify-center gap-3">
         <div
           className="relative w-[170px] h-[170px] flex items-center justify-center"
           aria-live="polite"
-          aria-label={
-            cameraOk === false
-              ? "Câmera indisponível"
-              : "Detectando rosto"
-          }
+          aria-label={cameraOk === false ? t("cap.unavailable") : t("ci.identifying")}
         >
           <motion.span
             variants={pulseRing}
@@ -87,7 +84,7 @@ const CheckoutIdentify = () => {
             )}
             {cameraOk === false && (
               <div className="absolute inset-0 flex items-center justify-center text-small text-text-secondary px-4 text-center">
-                Câmera indisponível
+                {t("cap.unavailable")}
               </div>
             )}
             <User
@@ -123,16 +120,14 @@ const CheckoutIdentify = () => {
                 />
               ))}
             </div>
-            <span className="text-small text-text-primary">
-              Identificando hóspede
-            </span>
+            <span className="text-small text-text-primary">{t("ci.identifying")}</span>
           </div>
           <span className="text-mono-tiny text-text-tertiary">v1.0</span>
         </div>
       </GlassCard>
 
       <GhostButton onClick={() => navigate("/reservation")}>
-        Não consigo · usar código da reserva
+        {t("ci.use_code")}
       </GhostButton>
     </ScreenShell>
   );

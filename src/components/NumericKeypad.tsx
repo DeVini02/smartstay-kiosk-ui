@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Delete, Check } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 interface NumericKeypadProps {
   open: boolean;
@@ -16,6 +17,7 @@ export const NumericKeypad = ({
   onBackspace,
   onConfirm,
 }: NumericKeypadProps) => {
+  const t = useT();
   return (
     <AnimatePresence>
       {open && (
@@ -32,11 +34,11 @@ export const NumericKeypad = ({
                 {k}
               </KeypadKey>
             ))}
-            <KeypadKey onClick={onBackspace} aria-label="Apagar">
+            <KeypadKey onClick={onBackspace} aria-label={t("kp.delete")}>
               <Delete size={20} />
             </KeypadKey>
             <KeypadKey onClick={() => onKey("0")}>0</KeypadKey>
-            <KeypadKey onClick={onConfirm} variant="confirm" aria-label="Confirmar">
+            <KeypadKey onClick={onConfirm} variant="confirm" aria-label={t("kp.confirm")}>
               <Check size={20} />
             </KeypadKey>
           </div>

@@ -1,13 +1,15 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ScreenShell } from "@/components/ScreenShell";
+import { useT } from "@/lib/i18n";
 
 const Processing = () => {
   const navigate = useNavigate();
+  const t = useT();
 
   useEffect(() => {
-    const t = setTimeout(() => navigate("/key"), 2500);
-    return () => clearTimeout(t);
+    const tm = setTimeout(() => navigate("/key"), 2500);
+    return () => clearTimeout(tm);
   }, [navigate]);
 
   return (
@@ -22,11 +24,11 @@ const Processing = () => {
             WebkitMask:
               "radial-gradient(circle, transparent 22px, black 23px)",
           }}
-          aria-label="Carregando"
+          aria-label={t("common.loading")}
         />
-        <h1 className="text-heading text-text-primary">Processando</h1>
+        <h1 className="text-heading text-text-primary">{t("proc.title")}</h1>
         <p className="text-body text-text-secondary max-w-[260px]">
-          Validando identidade e gerando sua chave digital
+          {t("proc.subtitle")}
         </p>
       </div>
     </ScreenShell>
