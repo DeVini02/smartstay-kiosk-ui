@@ -6,9 +6,11 @@ import { GlassCard } from "@/components/GlassCard";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useCheckIn } from "@/context/CheckInContext";
+import { useT } from "@/lib/i18n";
 
 const Key = () => {
   const navigate = useNavigate();
+  const t = useT();
   const { reservation } = useCheckIn();
   const r = reservation!;
   const firstName = r.guestName.split(" ")[0].replace(".", "");
@@ -16,19 +18,18 @@ const Key = () => {
   return (
     <ScreenShell>
       <StatusBadge variant="success" icon={Check} className="self-start mt-1">
-        CHECK-IN CONCLUÍDO
+        {t("key.done")}
       </StatusBadge>
 
       <h1 className="text-heading text-text-primary mt-3 leading-tight">
-        Bem-vindo,
+        {t("key.welcome")}
         <br />
         {firstName}!
       </h1>
 
       <div className="flex flex-col gap-3 mt-5">
-        {/* Card 1: Room */}
         <GlassCard accent="purple" className="!p-5">
-          <span className="text-label text-brand-primary/85">SEU QUARTO</span>
+          <span className="text-label text-brand-primary/85">{t("key.your_room")}</span>
           <div
             className="mt-1"
             style={{
@@ -44,13 +45,12 @@ const Key = () => {
             {r.room}
           </div>
           <span className="text-small text-text-secondary">
-            {r.floor}º andar · ala {r.wing}
+            {t("key.floor", { floor: r.floor, wing: r.wing })}
           </span>
         </GlassCard>
 
-        {/* Card 2: QR */}
         <GlassCard className="flex flex-col items-center !py-4">
-          <span className="text-label text-text-secondary">CHAVE DIGITAL</span>
+          <span className="text-label text-text-secondary">{t("key.digital_key")}</span>
           <div className="relative mt-3 mb-2">
             <span
               className="absolute inset-0 rounded-md border border-success/60 animate-success-ring"
@@ -68,20 +68,15 @@ const Key = () => {
               />
             </div>
           </div>
-          <span className="text-small text-text-secondary mt-1">
-            Aproxime no leitor da porta
-          </span>
+          <span className="text-small text-text-secondary mt-1">{t("key.tap_door")}</span>
         </GlassCard>
 
-        {/* Card 3: Wifi */}
         <GlassCard>
           <div className="flex items-center gap-3">
             <Wifi size={16} className="text-success" aria-hidden="true" />
             <div className="flex flex-col">
-              <span className="text-label text-text-secondary">Wi-Fi</span>
-              <span className="text-small text-text-primary">
-                Senha enviada por e-mail
-              </span>
+              <span className="text-label text-text-secondary">{t("key.wifi")}</span>
+              <span className="text-small text-text-primary">{t("key.wifi_msg")}</span>
             </div>
           </div>
         </GlassCard>
@@ -89,7 +84,7 @@ const Key = () => {
 
       <div className="mt-auto pt-5">
         <PrimaryButton onClick={() => navigate("/goodbye")}>
-          Concluir
+          {t("key.finish")}
         </PrimaryButton>
       </div>
     </ScreenShell>

@@ -8,9 +8,11 @@ import { PrimaryButton } from "@/components/PrimaryButton";
 import { GhostButton } from "@/components/GhostButton";
 import { breathingDot, pulseRing } from "@/lib/animations";
 import { useCheckIn } from "@/context/CheckInContext";
+import { useT } from "@/lib/i18n";
 
 const Capture = () => {
   const navigate = useNavigate();
+  const t = useT();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [cameraOk, setCameraOk] = useState<boolean | null>(null);
   const { setFaceCaptureCompleted } = useCheckIn();
@@ -25,7 +27,7 @@ const Capture = () => {
           audio: false,
         });
         if (cancelled) {
-          stream.getTracks().forEach((t) => t.stop());
+          stream.getTracks().forEach((tr) => tr.stop());
           return;
         }
         if (videoRef.current) {
@@ -40,32 +42,28 @@ const Capture = () => {
 
     return () => {
       cancelled = true;
-      stream?.getTracks().forEach((t) => t.stop());
+      stream?.getTracks().forEach((tr) => tr.stop());
     };
   }, []);
 
   useEffect(() => {
     if (cameraOk !== true) return;
-    const t = setTimeout(() => {
+    const tm = setTimeout(() => {
       setFaceCaptureCompleted(true);
       navigate("/processing");
     }, 4000);
-    return () => clearTimeout(t);
+    return () => clearTimeout(tm);
   }, [cameraOk, navigate, setFaceCaptureCompleted]);
 
   return (
     <ScreenShell step={{ total: 6, current: 6 }}>
-      <span className="text-label text-brand-primary/85 mt-2">
-        PASSO 6 DE 6
-      </span>
+      <span className="text-label text-brand-primary/85 mt-2">{t("cap.step")}</span>
       <h1 className="text-display text-text-primary mt-1 leading-[1.15]">
-        Olhe para
+        {t("cap.title_1")}
         <br />
-        a câmera
+        {t("cap.title_2")}
       </h1>
-      <p className="text-body text-text-secondary mt-2">
-        Vamos validar sua identidade. Captura automática.
-      </p>
+      <p className="text-body text-text-secondary mt-2">{t("cap.subtitle")}</p>
 
       <div className="flex-1 flex flex-col items-center justify-center gap-3">
         <div className="relative w-[170px] h-[170px] flex items-center justify-center">
@@ -101,7 +99,7 @@ const Capture = () => {
             )}
             {cameraOk === false && (
               <div className="absolute inset-0 flex items-center justify-center text-small text-text-secondary px-4 text-center">
-                Câmera indisponível
+                {t("cap.unavailable")}
               </div>
             )}
 
@@ -112,7 +110,6 @@ const Capture = () => {
               aria-hidden="true"
             />
 
-            {/* scan line */}
             <div
               className="absolute inset-x-0 h-[2px] animate-scan-line pointer-events-none"
               style={{
@@ -123,7 +120,6 @@ const Capture = () => {
               aria-hidden="true"
             />
 
-            {/* facial keypoints */}
             <span
               className="absolute w-1.5 h-1.5 rounded-full bg-brand-primary"
               style={{ top: "28%", left: "50%", transform: "translateX(-50%)" }}
@@ -143,7 +139,7 @@ const Capture = () => {
         </div>
 
         <p className="text-small text-text-secondary text-center">
-          Posicione seu rosto dentro do círculo
+          {t("cap.position")}
         </p>
       </div>
 
@@ -161,9 +157,7 @@ const Capture = () => {
                 />
               ))}
             </div>
-            <span className="text-small text-text-primary">
-              Detectando rosto
-            </span>
+            <span className="text-small text-text-primary">{t("cap.detecting")}</span>
           </div>
           <span className="text-mono-tiny text-text-tertiary">v1.0</span>
         </div>
@@ -176,9 +170,9 @@ const Capture = () => {
             navigate("/processing");
           }}
         >
-          Capturar agora
+          {t("cap.capture_now")}
         </PrimaryButton>
-        <GhostButton onClick={() => navigate("/lgpd")}>Cancelar</GhostButton>
+        <GhostButton onClick={() => navigate("/lgpd")}>{t("common.cancel")}</GhostButton>
       </div>
     </ScreenShell>
   );

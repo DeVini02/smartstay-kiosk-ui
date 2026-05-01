@@ -4,22 +4,18 @@ import { ScreenShell } from "@/components/ScreenShell";
 import { GlassCard } from "@/components/GlassCard";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { GhostButton } from "@/components/GhostButton";
-
-const items = [
-  "Sua chave digital será desativada",
-  "O quarto 412 será liberado para limpeza",
-  "O comprovante será enviado por e-mail",
-  "Seus dados biométricos serão apagados em 30 dias",
-];
+import { useT } from "@/lib/i18n";
 
 const CheckoutConfirm = () => {
   const navigate = useNavigate();
+  const t = useT();
+  const items = [t("cc.item1"), t("cc.item2"), t("cc.item3"), t("cc.item4")];
   return (
     <ScreenShell step={{ total: 4, current: 3 }}>
-      <h1 className="text-display text-text-primary mt-2">Confirmar saída?</h1>
+      <h1 className="text-display text-text-primary mt-2">{t("cc.title")}</h1>
 
       <GlassCard className="mt-5">
-        <p className="text-body text-text-primary mb-3">Ao confirmar:</p>
+        <p className="text-body text-text-primary mb-3">{t("cc.intro")}</p>
         <ul className="flex flex-col gap-2.5">
           {items.map((it) => (
             <li key={it} className="flex gap-2.5 items-start">
@@ -40,18 +36,20 @@ const CheckoutConfirm = () => {
             aria-hidden="true"
           />
           <p className="text-body text-text-primary">
-            <span style={{ color: "#FBBF24", fontWeight: 500 }}>Atenção:</span>{" "}
-            deixou algo no quarto? Procure a recepção antes de confirmar.
+            <span style={{ color: "#FBBF24", fontWeight: 500 }}>
+              {t("cc.warn_label")}
+            </span>{" "}
+            {t("cc.warn")}
           </p>
         </div>
       </GlassCard>
 
       <div className="flex flex-col gap-3 mt-auto pt-6">
         <PrimaryButton onClick={() => navigate("/checkout/rate")}>
-          Confirmar saída
+          {t("cc.confirm")}
         </PrimaryButton>
         <GhostButton onClick={() => navigate("/checkout/summary")}>
-          ← Voltar
+          {t("common.back")}
         </GhostButton>
       </div>
     </ScreenShell>

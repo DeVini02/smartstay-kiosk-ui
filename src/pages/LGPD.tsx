@@ -5,17 +5,14 @@ import { GlassCard } from "@/components/GlassCard";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { GhostButton } from "@/components/GhostButton";
 import { useCheckIn } from "@/context/CheckInContext";
-
-const items = [
-  "Capturar uma foto sua agora no totem",
-  "Converter a foto em código numérico (vetor)",
-  "Apagar a foto após gerar o código",
-  "Apagar todos os dados em até 30 dias após o check-out",
-];
+import { useT } from "@/lib/i18n";
 
 const LGPD = () => {
   const navigate = useNavigate();
+  const t = useT();
   const { setConsentGiven } = useCheckIn();
+
+  const items = [t("lgpd.item1"), t("lgpd.item2"), t("lgpd.item3"), t("lgpd.item4")];
 
   const accept = () => {
     setConsentGiven(true);
@@ -28,14 +25,12 @@ const LGPD = () => {
         className="text-text-primary mt-2"
         style={{ fontSize: "20px", fontWeight: 500, letterSpacing: "-0.3px" }}
       >
-        Uso da sua imagem
+        {t("lgpd.title")}
       </h1>
 
       <GlassCard accent="purple" className="mt-5 flex-1 overflow-hidden">
         <div className="h-full overflow-y-auto pr-1">
-          <p className="text-body text-text-primary mb-3">
-            Para fazer o check-in por reconhecimento facial precisamos:
-          </p>
+          <p className="text-body text-text-primary mb-3">{t("lgpd.intro")}</p>
           <ul className="flex flex-col gap-2.5">
             {items.map((item) => (
               <li key={item} className="flex gap-2.5 items-start">
@@ -46,19 +41,17 @@ const LGPD = () => {
               </li>
             ))}
           </ul>
-          <p className="text-body text-text-secondary mt-4">
-            Você pode pedir exclusão a qualquer momento na recepção.
-          </p>
+          <p className="text-body text-text-secondary mt-4">{t("lgpd.note")}</p>
         </div>
       </GlassCard>
 
       <div className="flex flex-col gap-3 mt-6">
-        <PrimaryButton onClick={accept}>Aceito e continuar</PrimaryButton>
+        <PrimaryButton onClick={accept}>{t("lgpd.accept")}</PrimaryButton>
         <GhostButton
           onClick={() => navigate("/menu")}
           className="!border-danger/40 !text-danger"
         >
-          Não aceito · check-in na recepção
+          {t("lgpd.decline")}
         </GhostButton>
       </div>
     </ScreenShell>
