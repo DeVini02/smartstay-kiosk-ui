@@ -2,10 +2,12 @@ import { useNavigate } from "react-router-dom";
 import { ScreenShell } from "@/components/ScreenShell";
 import { GhostButton } from "@/components/GhostButton";
 import { useCheckIn, type Language } from "@/context/CheckInContext";
+import { useT } from "@/lib/i18n";
 
 const LanguageSelect = () => {
   const navigate = useNavigate();
   const { setLanguage } = useCheckIn();
+  const t = useT();
 
   const choose = (l: Language) => {
     setLanguage(l);
@@ -15,8 +17,8 @@ const LanguageSelect = () => {
   return (
     <ScreenShell step={{ total: 6, current: 1 }}>
       <div className="flex flex-col gap-2 mt-2">
-        <h1 className="text-display text-text-primary">Selecione o idioma</h1>
-        <p className="text-body text-text-secondary">Select language</p>
+        <h1 className="text-display text-text-primary">{t("lang.title")}</h1>
+        <p className="text-body text-text-secondary">{t("lang.subtitle")}</p>
       </div>
 
       <div className="flex flex-col gap-3 mt-8">
@@ -36,7 +38,7 @@ const LanguageSelect = () => {
           onClick={() => navigate("/")}
           className="text-small text-text-secondary hover:text-text-primary transition-colors"
         >
-          ← Voltar
+          {t("common.back")}
         </button>
       </div>
     </ScreenShell>

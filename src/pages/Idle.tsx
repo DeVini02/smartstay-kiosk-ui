@@ -4,10 +4,12 @@ import { Plus } from "lucide-react";
 import { ScreenShell } from "@/components/ScreenShell";
 import { useCheckIn, type Language } from "@/context/CheckInContext";
 import { pulseRing } from "@/lib/animations";
+import { useT } from "@/lib/i18n";
 
 const Idle = () => {
   const navigate = useNavigate();
   const { language, setLanguage } = useCheckIn();
+  const t = useT();
 
   const langs: { code: Language; label: string }[] = [
     { code: "pt", label: "PT" },
@@ -19,7 +21,7 @@ const Idle = () => {
     <ScreenShell>
       <button
         onClick={() => navigate("/language-select")}
-        aria-label="Toque para começar"
+        aria-label={t("idle.aria")}
         className="flex-1 flex flex-col items-center justify-between w-full focus:outline-none"
       >
         <div className="flex-1 flex flex-col items-center justify-center gap-5 w-full">
@@ -43,7 +45,7 @@ const Idle = () => {
           </div>
 
           <div className="flex flex-col items-center gap-2 text-center">
-            <span className="text-label text-brand-primary/85">BEM-VINDO</span>
+            <span className="text-label text-brand-primary/85">{t("idle.welcome")}</span>
             <h1
               className="text-display"
               style={{
@@ -55,10 +57,10 @@ const Idle = () => {
                 animation: "shimmer 3s linear infinite",
               }}
             >
-              Toque para começar
+              {t("idle.tap")}
             </h1>
             <p className="text-mono-tiny text-text-tertiary tracking-wider">
-              Check-in em menos de 2 minutos
+              {t("idle.subtitle")}
             </p>
           </div>
         </div>

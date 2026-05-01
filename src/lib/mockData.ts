@@ -1,3 +1,6 @@
+import { translate } from "@/lib/i18n";
+import type { Language } from "@/context/CheckInContext";
+
 export const mockReservation = {
   guestName: "V. da Silva",
   room: "412",
@@ -10,11 +13,15 @@ export const mockReservation = {
 
 export type Reservation = typeof mockReservation;
 
-export const formatStayRange = (r: Reservation) => {
+export const formatStayRange = (r: Reservation, lang: Language = "pt") => {
   const fmt = (iso: string) => {
-    const [y, m, d] = iso.split("-");
-    return `${d}/${m}`;
+    const [, m, d] = iso.split("-");
+    return lang === "en" ? `${m}/${d}` : `${d}/${m}`;
   };
   const year = r.checkOut.split("-")[0];
-  return `${fmt(r.checkIn)} a ${fmt(r.checkOut)}/${year}`;
+  return translate(lang, "stay.range", {
+    from: fmt(r.checkIn),
+    to: fmt(r.checkOut),
+    year,
+  });
 };
