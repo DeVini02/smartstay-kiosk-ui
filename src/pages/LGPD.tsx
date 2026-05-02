@@ -54,6 +54,25 @@ const LGPD = () => {
         </div>
       </GlassCard>
 
+      <GlassCard className="mt-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="text-title text-text-primary">
+              {t("p.lgpd.section")}
+            </div>
+            <p className="text-small text-text-secondary mt-1">
+              {t("p.lgpd.section_desc")}
+            </p>
+          </div>
+          <Switch
+            checked={personalizationOn}
+            onCheckedChange={togglePersonalization}
+            aria-label={t("p.lgpd.section")}
+            className="data-[state=checked]:bg-success mt-1"
+          />
+        </div>
+      </GlassCard>
+
       <div className="flex flex-col gap-3 mt-6">
         <PrimaryButton onClick={accept}>{t("lgpd.accept")}</PrimaryButton>
         <GhostButton
