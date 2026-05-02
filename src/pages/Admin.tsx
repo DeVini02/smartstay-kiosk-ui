@@ -5,10 +5,12 @@ import { GlassCard } from "@/components/GlassCard";
 import { GhostButton } from "@/components/GhostButton";
 import { Switch } from "@/components/ui/switch";
 import { useCheckIn } from "@/context/CheckInContext";
+import { usePersonalization } from "@/contexts/PersonalizationContext";
 
 const Admin = () => {
   const navigate = useNavigate();
   const { reservation, setReservation } = useCheckIn();
+  const { isReturningGuest, setIsReturningGuest, profile } = usePersonalization();
   const [forceFaceFail, setForceFaceFail] = useState(false);
   const [forceOffline, setForceOffline] = useState(false);
 
