@@ -1,5 +1,34 @@
 import { translate } from "@/lib/i18n";
 import type { Language } from "@/context/CheckInContext";
+import type { GuestProfile } from "@/lib/personalization/types";
+
+export const mockReturningGuest: GuestProfile = {
+  guestId: "g_v_silva_001",
+  faceEmbeddingId: "fe_a8b2c4",
+  memberSince: "2024-03-15",
+  totalStays: 7,
+  averageRating: 4.8,
+  consents: {
+    comfort: true,
+    stay: true,
+    consumption: false,
+  },
+  preferences: {
+    comfort: {
+      temperature: 22,
+      acIntensity: "low",
+      lightingTone: "warm",
+      lightingBrightness: 60,
+      curtainPosition: "partial",
+    },
+    stay: {
+      preferredFloor: "high",
+      preferredView: "east",
+      bedType: "double",
+      smokingRoom: false,
+    },
+  },
+};
 
 export const mockReservation = {
   guestName: "V. da Silva",
