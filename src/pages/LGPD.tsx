@@ -4,13 +4,22 @@ import { ScreenShell } from "@/components/ScreenShell";
 import { GlassCard } from "@/components/GlassCard";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { GhostButton } from "@/components/GhostButton";
+import { Switch } from "@/components/ui/switch";
 import { useCheckIn } from "@/context/CheckInContext";
 import { useT } from "@/lib/i18n";
+import { usePersonalization } from "@/contexts/PersonalizationContext";
 
 const LGPD = () => {
   const navigate = useNavigate();
   const t = useT();
   const { setConsentGiven } = useCheckIn();
+  const { profile, setConsent } = usePersonalization();
+  const personalizationOn = !!(profile && (profile.consents.comfort || profile.consents.stay));
+
+  const togglePersonalization = (v: boolean) => {
+    setConsent("comfort", v, "checkin");
+    setConsent("stay", v, "checkin");
+  };
 
   const items = [t("lgpd.item1"), t("lgpd.item2"), t("lgpd.item3"), t("lgpd.item4")];
 
