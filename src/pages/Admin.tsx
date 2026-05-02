@@ -5,10 +5,12 @@ import { GlassCard } from "@/components/GlassCard";
 import { GhostButton } from "@/components/GhostButton";
 import { Switch } from "@/components/ui/switch";
 import { useCheckIn } from "@/context/CheckInContext";
+import { usePersonalization } from "@/contexts/PersonalizationContext";
 
 const Admin = () => {
   const navigate = useNavigate();
   const { reservation, setReservation } = useCheckIn();
+  const { isReturningGuest, setIsReturningGuest, profile } = usePersonalization();
   const [forceFaceFail, setForceFaceFail] = useState(false);
   const [forceOffline, setForceOffline] = useState(false);
 
@@ -20,6 +22,24 @@ const Admin = () => {
       </p>
 
       <div className="flex flex-col gap-3 mt-5">
+        <GlassCard accent="teal">
+          <div className="flex items-center justify-between">
+            <span className="text-title text-text-primary">
+              Hóspede recorrente
+            </span>
+            <Switch
+              checked={isReturningGuest}
+              onCheckedChange={setIsReturningGuest}
+              aria-label="Hóspede recorrente"
+            />
+          </div>
+          <p className="text-small text-text-secondary mt-1">
+            {profile
+              ? `${profile.totalStays} estadias · perfil ${profile.guestId}`
+              : "Sem perfil salvo"}
+          </p>
+        </GlassCard>
+
         <GlassCard accent="purple">
           <div className="flex items-center justify-between">
             <span className="text-title text-text-primary">

@@ -7,13 +7,16 @@ import { PrimaryButton } from "@/components/PrimaryButton";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useCheckIn } from "@/context/CheckInContext";
 import { useT } from "@/lib/i18n";
+import { usePersonalization } from "@/contexts/PersonalizationContext";
 
 const Key = () => {
   const navigate = useNavigate();
   const t = useT();
   const { reservation } = useCheckIn();
+  const { isReturningGuest } = usePersonalization();
   const r = reservation!;
   const firstName = r.guestName.split(" ")[0].replace(".", "");
+  const finishTo = isReturningGuest ? "/goodbye" : "/first-stay-onboarding";
 
   return (
     <ScreenShell>
@@ -83,7 +86,7 @@ const Key = () => {
       </div>
 
       <div className="mt-auto pt-5">
-        <PrimaryButton onClick={() => navigate("/goodbye")}>
+        <PrimaryButton onClick={() => navigate(finishTo)}>
           {t("key.finish")}
         </PrimaryButton>
       </div>

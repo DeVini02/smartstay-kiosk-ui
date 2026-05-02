@@ -2,15 +2,22 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ScreenShell } from "@/components/ScreenShell";
 import { useT } from "@/lib/i18n";
+import { usePersonalization } from "@/contexts/PersonalizationContext";
 
 const Processing = () => {
   const navigate = useNavigate();
   const t = useT();
+  const { isReturningGuest, profile } = usePersonalization();
 
   useEffect(() => {
-    const tm = setTimeout(() => navigate("/key"), 2500);
+    const tm = setTimeout(() => {
+      const hasConsent =
+        !!profile && (profile.consents.comfort || profile.consents.stay);
+      if (isReturningGuest && hasConsent) navigate("/welcome-back");
+      else navigate("/key");
+    }, 2500);
     return () => clearTimeout(tm);
-  }, [navigate]);
+  }, [navigate, isReturningGuest, profile]);
 
   return (
     <ScreenShell showHeader={false}>
