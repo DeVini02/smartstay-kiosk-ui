@@ -71,6 +71,10 @@ const AnimatedRoutes = () => {
         <Route path="/checkout/confirm" element={<CheckoutConfirm />} />
         <Route path="/checkout/rate" element={<CheckoutRate />} />
         <Route path="/checkout/goodbye" element={<CheckoutGoodbye />} />
+        <Route path="/welcome-back" element={<WelcomeBack />} />
+        <Route path="/room-preparing" element={<RoomPreparing />} />
+        <Route path="/my-profile" element={<MyProfile />} />
+        <Route path="/first-stay-onboarding" element={<FirstStayOnboarding />} />
         <Route path="/test/errors" element={<TestErrors />} />
         <Route path="/test/all-screens" element={<TestAllScreens />} />
         <Route path="/admin" element={<Admin />} />
@@ -86,10 +90,12 @@ const App = () => (
       <Toaster />
       <Sonner />
       <CheckInProvider>
-        <BrowserRouter>
-          <EscToHome />
-          <AnimatedRoutes />
-        </BrowserRouter>
+        <PersonalizationProvider>
+          <BrowserRouter>
+            <EscToHome />
+            <AnimatedRoutes />
+          </BrowserRouter>
+        </PersonalizationProvider>
       </CheckInProvider>
     </TooltipProvider>
   </QueryClientProvider>
