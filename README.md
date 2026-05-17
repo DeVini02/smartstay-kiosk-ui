@@ -34,8 +34,7 @@ Este ecossistema é composto por repositórios separados:
 - **Front-end:** React + Vite + Tailwind CSS
 - **Back-end:** Python + FastAPI (a desenvolver)
 - **Banco de dados:** PostgreSQL (a desenvolver)
-- **Reconhecimento facial:** face-api.js — roda localmente, sem enviar imagens para servidores
-- **Hospedagem:** Render (gratuito para o MVP)
+- **Reconhecimento facial:** face-api.js — roda localmente, sem enviar imagens para servidore
 
 ---
 
