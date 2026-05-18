@@ -39,12 +39,23 @@ Repositório futuro: `smartstay-app` (app mobile do hóspede).
 
 ## Como rodar o totem (front-end)
 
+**1.** Suba a API (outro terminal):
+
+```powershell
+cd smartstay-backend
+.\run-local.ps1
+```
+
+**2.** Suba o totem:
+
 ```bash
 npm install
 npm run dev
 ```
 
-Abre em http://localhost:5173
+Abre em http://localhost:8080 — o totem já chama a API em `http://127.0.0.1:8000` (ver `.env.development`).
+
+**Teste:** código `2847` ou CPF `12345678901` → check-in completo → depois check-out no menu.
 
 ---
 
@@ -73,6 +84,6 @@ Detalhes, endpoints e dados de teste: **[smartstay-backend/README.md](./smartsta
 - **API back-end:** reservas, check-in/out, chave digital, LGPD, IoT simulado, PMS simulado, Swagger
 
 ### Em desenvolvimento
-- Integração totem ↔ API (front ainda usa mocks)
+- Reconhecimento facial real (face-api.js)
 - App mobile do hóspede
 - Reconhecimento facial real (hoje só exibe a câmera)

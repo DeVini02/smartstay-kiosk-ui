@@ -12,7 +12,7 @@ import { usePersonalization } from "@/contexts/PersonalizationContext";
 const Key = () => {
   const navigate = useNavigate();
   const t = useT();
-  const { reservation } = useCheckIn();
+  const { reservation, qrPayload } = useCheckIn();
   const { isReturningGuest } = usePersonalization();
   const r = reservation!;
   const firstName = r.guestName.split(" ")[0].replace(".", "");
@@ -66,7 +66,7 @@ const Key = () => {
             />
             <div className="relative bg-white p-1.5 rounded-md">
               <QRCode
-                value={`smartstay://room/${r.room}/checkin/abc123`}
+                value={qrPayload ?? `smartstay://room/${r.room}/checkin/demo`}
                 size={88}
               />
             </div>

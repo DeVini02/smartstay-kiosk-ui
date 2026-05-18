@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Check } from "lucide-react";
 import { ScreenShell } from "@/components/ScreenShell";
@@ -8,12 +9,15 @@ import { Switch } from "@/components/ui/switch";
 import { useCheckIn } from "@/context/CheckInContext";
 import { useT } from "@/lib/i18n";
 import { usePersonalization } from "@/contexts/PersonalizationContext";
+import { isApiEnabled } from "@/lib/api/config";
+import { postCheckInConsent } from "@/lib/api/client";
 
 const LGPD = () => {
   const navigate = useNavigate();
   const t = useT();
-  const { setConsentGiven } = useCheckIn();
+  const { setConsentGiven, checkInSessionId } = useCheckIn();
   const { profile, setConsent } = usePersonalization();
+  const [loading, setLoading] = useState(false);
   const personalizationOn = !!(profile && (profile.consents.comfort || profile.consents.stay));
 
   const togglePersonalization = (v: boolean) => {
@@ -23,9 +27,20 @@ const LGPD = () => {
 
   const items = [t("lgpd.item1"), t("lgpd.item2"), t("lgpd.item3"), t("lgpd.item4")];
 
-  const accept = () => {
-    setConsentGiven(true);
-    navigate("/capture");
+  const accept = async () => {
+    setLoading(true);
+    try {
+      if (isApiEnabled() && checkInSessionId && profile) {
+        await postCheckInConsent(checkInSessionId, profile.consents);
+      }
+      setConsentGiven(true);
+      navigate("/capture");
+    } catch {
+      setConsentGiven(true);
+      navigate("/capture");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -57,12 +72,8 @@ const LGPD = () => {
       <GlassCard className="mt-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <div className="text-title text-text-primary">
-              {t("p.lgpd.section")}
-            </div>
-            <p className="text-small text-text-secondary mt-1">
-              {t("p.lgpd.section_desc")}
-            </p>
+            <div className="text-title text-text-primary">{t("p.lgpd.section")}</div>
+            <p className="text-small text-text-secondary mt-1">{t("p.lgpd.section_desc")}</p>
           </div>
           <Switch
             checked={personalizationOn}
@@ -74,7 +85,9 @@ const LGPD = () => {
       </GlassCard>
 
       <div className="flex flex-col gap-3 mt-6">
-        <PrimaryButton onClick={accept}>{t("lgpd.accept")}</PrimaryButton>
+        <PrimaryButton onClick={accept} disabled={loading}>
+          {loading ? t("common.loading") : t("lgpd.accept")}
+        </PrimaryButton>
         <GhostButton
           onClick={() => navigate("/menu")}
           className="!border-danger/40 !text-danger"

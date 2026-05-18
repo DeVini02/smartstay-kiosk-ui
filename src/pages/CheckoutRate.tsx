@@ -8,11 +8,26 @@ import { PrimaryButton } from "@/components/PrimaryButton";
 import { GhostButton } from "@/components/GhostButton";
 import { StatusBadge } from "@/components/StatusBadge";
 import { useT } from "@/lib/i18n";
+import { useCheckIn } from "@/context/CheckInContext";
+import { isApiEnabled } from "@/lib/api/config";
+import { rateCheckout } from "@/lib/api/client";
 
 const CheckoutRate = () => {
   const navigate = useNavigate();
   const t = useT();
+  const { checkoutSessionId } = useCheckIn();
   const [rating, setRating] = useState(0);
+
+  const finish = async () => {
+    if (isApiEnabled() && checkoutSessionId && rating > 0) {
+      try {
+        await rateCheckout(checkoutSessionId, rating);
+      } catch {
+        // ignore
+      }
+    }
+    navigate("/checkout/goodbye");
+  };
 
   return (
     <ScreenShell>
@@ -25,16 +40,13 @@ const CheckoutRate = () => {
 
       <GlassCard className="mt-5 flex flex-col items-center !py-5">
         <span className="text-small text-text-secondary">{t("cr.tap")}</span>
-        <div
-          className="flex gap-2 mt-3"
-          role="radiogroup"
-          aria-label={t("cr.aria_group")}
-        >
+        <div className="flex gap-2 mt-3" role="radiogroup" aria-label={t("cr.aria_group")}>
           {[1, 2, 3, 4, 5].map((n) => {
             const filled = n <= rating;
             return (
               <motion.button
                 key={n}
+                type="button"
                 whileTap={{ scale: 0.85 }}
                 onClick={() => setRating(n)}
                 aria-label={n > 1 ? t("cr.aria_stars", { n }) : t("cr.aria_star", { n })}
@@ -69,9 +81,7 @@ const CheckoutRate = () => {
       </GlassCard>
 
       <div className="flex flex-col gap-3 mt-auto pt-6">
-        <PrimaryButton onClick={() => navigate("/checkout/goodbye")}>
-          {t("cr.send")}
-        </PrimaryButton>
+        <PrimaryButton onClick={() => void finish()}>{t("cr.send")}</PrimaryButton>
         <GhostButton onClick={() => navigate("/checkout/goodbye")}>
           {t("common.skip_finish")}
         </GhostButton>

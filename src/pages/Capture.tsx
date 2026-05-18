@@ -9,13 +9,30 @@ import { GhostButton } from "@/components/GhostButton";
 import { breathingDot, pulseRing } from "@/lib/animations";
 import { useCheckIn } from "@/context/CheckInContext";
 import { useT } from "@/lib/i18n";
+import { isApiEnabled } from "@/lib/api/config";
+import { postCheckInFace } from "@/lib/api/client";
+import { usePersonalization } from "@/contexts/PersonalizationContext";
 
 const Capture = () => {
   const navigate = useNavigate();
   const t = useT();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [cameraOk, setCameraOk] = useState<boolean | null>(null);
-  const { setFaceCaptureCompleted } = useCheckIn();
+  const { setFaceCaptureCompleted, checkInSessionId } = useCheckIn();
+  const { setIsReturningGuest } = usePersonalization();
+
+  const goProcessing = async () => {
+    if (isApiEnabled() && checkInSessionId) {
+      try {
+        const face = await postCheckInFace(checkInSessionId);
+        setIsReturningGuest(face.is_returning_guest);
+      } catch {
+        // continua fluxo mesmo se API falhar no MVP
+      }
+    }
+    setFaceCaptureCompleted(true);
+    navigate("/processing");
+  };
 
   useEffect(() => {
     let stream: MediaStream | null = null;
@@ -49,11 +66,10 @@ const Capture = () => {
   useEffect(() => {
     if (cameraOk !== true) return;
     const tm = setTimeout(() => {
-      setFaceCaptureCompleted(true);
-      navigate("/processing");
+      void goProcessing();
     }, 4000);
     return () => clearTimeout(tm);
-  }, [cameraOk, navigate, setFaceCaptureCompleted]);
+  }, [cameraOk]);
 
   return (
     <ScreenShell step={{ total: 6, current: 6 }}>
@@ -119,28 +135,10 @@ const Capture = () => {
               }}
               aria-hidden="true"
             />
-
-            <span
-              className="absolute w-1.5 h-1.5 rounded-full bg-brand-primary"
-              style={{ top: "28%", left: "50%", transform: "translateX(-50%)" }}
-              aria-hidden="true"
-            />
-            <span
-              className="absolute w-1.5 h-1.5 rounded-full bg-success"
-              style={{ top: "55%", left: "30%" }}
-              aria-hidden="true"
-            />
-            <span
-              className="absolute w-1.5 h-1.5 rounded-full bg-success"
-              style={{ top: "55%", right: "30%" }}
-              aria-hidden="true"
-            />
           </div>
         </div>
 
-        <p className="text-small text-text-secondary text-center">
-          {t("cap.position")}
-        </p>
+        <p className="text-small text-text-secondary text-center">{t("cap.position")}</p>
       </div>
 
       <GlassCard className="mb-3">
@@ -164,14 +162,7 @@ const Capture = () => {
       </GlassCard>
 
       <div className="flex flex-col gap-3">
-        <PrimaryButton
-          onClick={() => {
-            setFaceCaptureCompleted(true);
-            navigate("/processing");
-          }}
-        >
-          {t("cap.capture_now")}
-        </PrimaryButton>
+        <PrimaryButton onClick={() => void goProcessing()}>{t("cap.capture_now")}</PrimaryButton>
         <GhostButton onClick={() => navigate("/lgpd")}>{t("common.cancel")}</GhostButton>
       </div>
     </ScreenShell>

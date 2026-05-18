@@ -7,12 +7,40 @@ import { GlassCard } from "@/components/GlassCard";
 import { GhostButton } from "@/components/GhostButton";
 import { breathingDot, pulseRing } from "@/lib/animations";
 import { useT } from "@/lib/i18n";
+import { useCheckIn } from "@/context/CheckInContext";
+import { isApiEnabled } from "@/lib/api/config";
+import { checkoutIdentify } from "@/lib/api/client";
 
 const CheckoutIdentify = () => {
   const navigate = useNavigate();
   const t = useT();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [cameraOk, setCameraOk] = useState<boolean | null>(null);
+  const { reservation, setCheckoutSessionId, setCheckoutSummary } = useCheckIn();
+
+  useEffect(() => {
+    if (!reservation) navigate("/reservation", { replace: true });
+  }, [reservation, navigate]);
+
+  const identify = async () => {
+    if (!isApiEnabled() || !reservation?.id) {
+      navigate("/checkout/summary");
+      return;
+    }
+    try {
+      const summary = await checkoutIdentify(reservation.id);
+      setCheckoutSessionId(summary.session_id);
+      setCheckoutSummary({
+        sessionId: summary.session_id,
+        nights: summary.nights,
+        extras: summary.extras,
+        totalAmount: summary.total_amount,
+      });
+    } catch {
+      // demo offline
+    }
+    navigate("/checkout/summary");
+  };
 
   useEffect(() => {
     let stream: MediaStream | null = null;
@@ -41,9 +69,11 @@ const CheckoutIdentify = () => {
 
   useEffect(() => {
     if (cameraOk !== true) return;
-    const tm = setTimeout(() => navigate("/checkout/summary"), 4000);
+    const tm = setTimeout(() => {
+      void identify();
+    }, 4000);
     return () => clearTimeout(tm);
-  }, [cameraOk, navigate]);
+  }, [cameraOk]);
 
   return (
     <ScreenShell step={{ total: 4, current: 1 }}>
@@ -126,9 +156,7 @@ const CheckoutIdentify = () => {
         </div>
       </GlassCard>
 
-      <GhostButton onClick={() => navigate("/reservation")}>
-        {t("ci.use_code")}
-      </GhostButton>
+      <GhostButton onClick={() => navigate("/reservation")}>{t("ci.use_code")}</GhostButton>
     </ScreenShell>
   );
 };

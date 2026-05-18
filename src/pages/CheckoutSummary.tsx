@@ -3,6 +3,10 @@ import { ScreenShell } from "@/components/ScreenShell";
 import { GlassCard } from "@/components/GlassCard";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { useT } from "@/lib/i18n";
+import { useCheckIn } from "@/context/CheckInContext";
+
+const fmt = (n: number) =>
+  n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 const Row = ({ left, right }: { left: string; right: string }) => (
   <div className="flex items-center justify-between py-1">
@@ -16,6 +20,16 @@ const Row = ({ left, right }: { left: string; right: string }) => (
 const CheckoutSummary = () => {
   const navigate = useNavigate();
   const t = useT();
+  const { checkoutSummary } = useCheckIn();
+
+  const nights = checkoutSummary?.nights ?? 4;
+  const extras = checkoutSummary?.extras ?? [
+    { label: "Frigobar · 30/04", amount: 42 },
+    { label: "Restaurante · 01/05", amount: 128 },
+  ];
+  const total = checkoutSummary?.totalAmount ?? 1690;
+  const roomTotal = total - extras.reduce((s, e) => s + e.amount, 0);
+
   return (
     <ScreenShell step={{ total: 4, current: 2 }}>
       <h1 className="text-display text-text-primary mt-2">{t("cs.title")}</h1>
@@ -25,21 +39,21 @@ const CheckoutSummary = () => {
         <GlassCard>
           <span className="text-label text-text-secondary">{t("cs.nights")}</span>
           <div className="mt-2">
-            <Row left="R$ 380 × 4" right="R$ 1.520,00" />
+            <Row
+              left={`R$ ${Math.round(roomTotal / nights)} × ${nights}`}
+              right={fmt(roomTotal)}
+            />
           </div>
         </GlassCard>
 
         <GlassCard>
           <span className="text-label text-text-secondary">{t("cs.consumption")}</span>
           <div className="mt-2">
-            <Row left="Frigobar · 30/04" right="R$ 42,00" />
-            <Row left="Restaurante · 01/05" right="R$ 128,00" />
+            {extras.map((e) => (
+              <Row key={e.label} left={e.label} right={fmt(e.amount)} />
+            ))}
           </div>
-          <button
-            className="mt-2 text-small"
-            style={{ color: "#60A5FA" }}
-            onClick={() => {}}
-          >
+          <button className="mt-2 text-small" style={{ color: "#60A5FA" }} type="button">
             {t("cs.dispute")}
           </button>
         </GlassCard>
@@ -47,17 +61,11 @@ const CheckoutSummary = () => {
         <GlassCard accent="teal">
           <div className="flex items-center justify-between">
             <span className="text-title text-text-primary">{t("cs.total")}</span>
-            <span
-              className="text-title"
-              style={{ color: "#5EEAD4", fontWeight: 500 }}
-            >
-              R$ 1.690,00
+            <span className="text-title" style={{ color: "#5EEAD4", fontWeight: 500 }}>
+              {fmt(total)}
             </span>
           </div>
-          <p
-            className="text-label mt-1"
-            style={{ color: "rgba(94,234,212,0.75)" }}
-          >
+          <p className="text-label mt-1" style={{ color: "rgba(94,234,212,0.75)" }}>
             {t("cs.paid")}
           </p>
         </GlassCard>

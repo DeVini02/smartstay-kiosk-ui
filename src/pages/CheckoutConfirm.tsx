@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, AlertTriangle } from "lucide-react";
 import { ScreenShell } from "@/components/ScreenShell";
@@ -5,11 +6,31 @@ import { GlassCard } from "@/components/GlassCard";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { GhostButton } from "@/components/GhostButton";
 import { useT } from "@/lib/i18n";
+import { useCheckIn } from "@/context/CheckInContext";
+import { isApiEnabled } from "@/lib/api/config";
+import { confirmCheckout } from "@/lib/api/client";
 
 const CheckoutConfirm = () => {
   const navigate = useNavigate();
   const t = useT();
+  const { checkoutSessionId } = useCheckIn();
+  const [loading, setLoading] = useState(false);
   const items = [t("cc.item1"), t("cc.item2"), t("cc.item3"), t("cc.item4")];
+
+  const handleConfirm = async () => {
+    setLoading(true);
+    try {
+      if (isApiEnabled() && checkoutSessionId) {
+        await confirmCheckout(checkoutSessionId);
+      }
+    } catch {
+      // segue fluxo
+    } finally {
+      setLoading(false);
+      navigate("/checkout/rate");
+    }
+  };
+
   return (
     <ScreenShell step={{ total: 4, current: 3 }}>
       <h1 className="text-display text-text-primary mt-2">{t("cc.title")}</h1>
@@ -30,27 +51,19 @@ const CheckoutConfirm = () => {
 
       <GlassCard accent="amber" className="mt-3">
         <div className="flex gap-2.5 items-start">
-          <AlertTriangle
-            size={16}
-            className="text-warn flex-shrink-0 mt-0.5"
-            aria-hidden="true"
-          />
+          <AlertTriangle size={16} className="text-warn flex-shrink-0 mt-0.5" aria-hidden="true" />
           <p className="text-body text-text-primary">
-            <span style={{ color: "#FBBF24", fontWeight: 500 }}>
-              {t("cc.warn_label")}
-            </span>{" "}
+            <span style={{ color: "#FBBF24", fontWeight: 500 }}>{t("cc.warn_label")}</span>{" "}
             {t("cc.warn")}
           </p>
         </div>
       </GlassCard>
 
       <div className="flex flex-col gap-3 mt-auto pt-6">
-        <PrimaryButton onClick={() => navigate("/checkout/rate")}>
-          {t("cc.confirm")}
+        <PrimaryButton onClick={handleConfirm} disabled={loading}>
+          {loading ? t("common.loading") : t("cc.confirm")}
         </PrimaryButton>
-        <GhostButton onClick={() => navigate("/checkout/summary")}>
-          {t("common.back")}
-        </GhostButton>
+        <GhostButton onClick={() => navigate("/checkout/summary")}>{t("common.back")}</GhostButton>
       </div>
     </ScreenShell>
   );

@@ -31,6 +31,8 @@ export const mockReturningGuest: GuestProfile = {
 };
 
 export const mockReservation = {
+  id: "res_demo_412",
+  guestId: "g_v_silva_001",
   guestName: "V. da Silva",
   room: "412",
   roomType: "Standard duplo",
@@ -41,6 +43,13 @@ export const mockReservation = {
 };
 
 export type Reservation = typeof mockReservation;
+
+export type CheckoutSummaryData = {
+  sessionId: string;
+  nights: number;
+  extras: { label: string; amount: number }[];
+  totalAmount: number;
+};
 
 export const formatStayRange = (r: Reservation, lang: Language = "pt") => {
   const fmt = (iso: string) => {
