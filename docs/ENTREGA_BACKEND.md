@@ -1,133 +1,88 @@
-# Entrega do backend + integração o que foi feito e o que falta
+# Backend — o que foi feito e o que falta
 
-**Responsável:** Enzo 
-**Repositório:** https://github.com/DeVini02/smartstay-kiosk-ui  
-**Pasta do back:** `smartstay-backend/`  
-**Status:** ✅ Parte de backend + integração com totem **concluída para MVP**
+**Enzo** (back)  
+Repo: https://github.com/DeVini02/smartstay-kiosk-ui  
+Pasta: `smartstay-backend/`
 
----
-
-## 1. O que eu fiz (resumo para apresentar)
-
-Construí a **API REST do SmartStay** e **conectei ao totem** que o Vini já tinha feito. Antes o totem só usava dados falsos no navegador (`mockData` / `localStorage`). Agora o fluxo principal fala com o servidor.
-
-### Backend (`smartstay-backend/`)
-
-| Módulo | O que faz |
-|--------|-----------|
-| **Reservas** | Busca por código (4 dígitos) ou CPF — simula consulta ao PMS |
-| **Check-in** | Sessão → consentimento LGPD → verificação facial → chave digital |
-| **Chave digital** | Token + QR (`smartstay://room/...`) + endpoint de validação |
-| **Hóspede / perfil** | Preferências, histórico, hóspede recorrente |
-| **LGPD** | Log de consentimentos, exportação e exclusão de dados |
-| **IoT** | Aplica temperatura, luz, cortinas (simulado + log no banco) |
-| **Check-out** | Identificação → resumo → confirma → avaliação → revoga chaves |
-| **PMS** | Camada simulada (`PmsService`) — pronta para API real depois |
-| **Docs** | Swagger em `/docs` |
-
-**Stack:** Python, FastAPI, SQLAlchemy, SQLite (dev) ou PostgreSQL (Docker).
-
-**LGPD:** fotos **não** são salvas no servidor — só referência/hash do embedding facial.
-
-### Integração com o totem (`src/lib/api/`)
-
-Telas que **já chamam a API**:
-
-- Busca de reserva  
-- Início do check-in (ao confirmar reserva)  
-- Consentimento LGPD  
-- Captura facial (verificação simulada no back)  
-- Processamento → conclusão do check-in + QR real  
-- Check-out (identificar, confirmar, avaliar)  
-
-Arquivo de config: `.env.development` → `VITE_API_URL=http://127.0.0.1:8000/api/v1`
-
-### GitHub
-
-Tudo está no repo do time, branch `main`:
-
-- Commit 1: API + pasta `smartstay-backend/`  
-- Commit 2: Integração totem ↔ API  
+Fala, time. Resumo do que ficou pronto da minha parte e o que ainda depende de vocês.
 
 ---
 
-## 2. O que o time pode dizer na sprint / banca
+## O que eu fiz
 
-> “Temos um **MVP integrado**: totem React na recepção + API FastAPI com check-in/out, chave digital, LGPD e personalização IoT simulada. O hóspede busca a reserva, aceita os termos, passa pela captura facial, recebe QR de chave digital e, no check-out, vê o resumo e avalia a estadia. O back está documentado no Swagger e versionado no GitHub.”
+Montei a API do SmartStay em Python (FastAPI) e liguei no totem que o Vini já tinha pronto.
 
-Demo sugerida (5 min): código **2847** → check-in completo → mostrar QR → check-out.
+Antes o totem só fingia os dados no navegador (`mockData`, `localStorage`). Agora o fluxo de check-in e check-out passa pela API de verdade.
 
----
+**No back tem:**
 
-## 3. O que ainda falta (por área / pessoa)
+- Buscar reserva por código (4 dígitos) ou CPF
+- Check-in inteiro: sessão, LGPD, “face” (ainda simulado), chave digital com QR
+- Perfil do hóspede, preferências, hóspede que já voltou no hotel
+- LGPD: log de consentimento, exportar dados, apagar dados pessoais
+- IoT e PMS **simulados** por enquanto (mas já gravam no banco / no fluxo)
+- Swagger em http://127.0.0.1:8000/docs pra testar sem o totem
 
-Não é “refazer o back”. É evoluir o produto para nota máxima e produção.
+Foto de rosto **não** vai pro servidor — no máximo hash/id do embedding, quando a gente colocar o face-api de verdade.
 
-### Front do totem (Vini / front)
+**No totem, essas telas já batem na API:**
 
-| Tarefa | Prioridade | Detalhe |
-|--------|------------|---------|
-| Revisar fluxos integrados | Alta | Testar com `COMO_RODAR.md`; reportar bugs |
-| **face-api.js** real | Alta | Reconhecimento no browser; API só recebe `vector_hash` |
-| Tratamento de erros | Média | Telas de erro já existem; ligar 100% aos status da API |
-| Ajustes de UX pós-teste | Média | Loading, mensagens, totem físico FIAP |
+busca reserva → confirma → LGPD → câmera → processando → chave (QR vem do back) → check-out
 
-### App mobile (`smartstay-app` — a definir)
+Config do front: `.env.development` com `VITE_API_URL=http://127.0.0.1:8000/api/v1`
 
-| Tarefa | Prioridade |
-|--------|------------|
-| Criar repo / telas | Alta |
-| Chave digital + controle do quarto | Alta |
-| Consumir mesma API (`/api/v1`) | Alta |
-
-### Back (eu — manutenção / evolução)
-
-| Tarefa | Prioridade | Detalhe |
-|--------|------------|---------|
-| Suporte na integração | Contínuo | Ajudar se endpoint/CORS quebrar |
-| PMS real | Baixa (pós-MVP) | Substituir `PmsService` simulado |
-| IoT real (MQTT / Flexmedia) | Baixa (pós-MVP) | Substituir simulador |
-| Deploy em nuvem | Média | Railway, Render, etc. — demo fora do PC |
-
-### Time geral
-
-| Tarefa | Prioridade |
-|--------|------------|
-| **Vídeo pitch** (3 min) | Obrigatório sprint |
-| Teste nos **totens FIAP** (Paulista) | Alta |
-| PDF + ZIP para portal FIAP | Obrigatório |
-| Atualizar README principal se mudar algo | Baixa |
+Tá tudo na `main` do GitHub.
 
 ---
 
-## 4. O que NÃO é mais “a fazer” no backend
+## Pra testar / mostrar na sprint
 
-- ❌ Criar API do zero  
-- ❌ Modelar check-in / check-out / LGPD do zero  
-- ❌ Subir back no GitHub (já está)  
-- ❌ Ligar totem à API nos fluxos principais (já feito)  
-
----
-
-## 5. Arquivos úteis
-
-| Arquivo | Conteúdo |
-|---------|----------|
-| `docs/COMO_RODAR.md` | Passo a passo para rodar API + totem |
-| `smartstay-backend/README.md` | Detalhes técnicos da API e endpoints |
-| `README.md` (raiz) | Visão geral do ecossistema |
-| http://127.0.0.1:8000/docs | Documentação interativa (com API rodando) |
+1. Sobe API + totem (`COMO_RODAR.md`)
+2. Código **2847** no check-in
+3. Mostra o QR na chave digital
+4. Se der tempo, check-out no mesmo fluxo (check-in antes na mesma sessão)
 
 ---
 
-## 6. Contato / dúvidas
+## O que ainda falta (não é refazer o back)
 
-Se a API não subir ou o totem não achar reserva:
+### Vini / front do totem
 
-1. Conferir `COMO_RODAR.md`  
-2. Testar http://127.0.0.1:8000/health  
+- Testar o fluxo integrado e avisar se quebrar algo
+- Colocar **face-api.js** de verdade (hoje a câmera abre mas o reconhecimento é simulado)
+- Ajustar telas de erro se a API cair
+- UX depois de testar no totem da FIAP
 
+### App mobile
+
+- Repo separado — chave digital, controle do quarto
+- Mesma API (`/api/v1`)
+
+### Geral do grupo
+
+- Vídeo pitch (3 min)
+- ZIP + PDF pro portal FIAP
+- Totem físico na Paulista (com o Scrum Master)
+
+### Comigo, se precisar
+
+- CORS, endpoint, integração quebrando
+- Depois: PMS real, IoT real, deploy (se pedirem)
 
 ---
 
-*Challenge FIAP 2025-26 · Flexmedia · SmartStay AI*
+## O que **não** precisa mais no back
+
+- Criar API do zero
+- Integrar totem nos fluxos principais (já feito)
+- Subir no Git (já tá)
+
+---
+
+## Se não rodar aí
+
+1. `COMO_RODAR.md`
+2. http://127.0.0.1:8000/health tem que dar ok
+3. Me chama com print + terminal
+
+Detalhe da API: `smartstay-backend/README.md`

@@ -1,24 +1,22 @@
-# Como rodar o SmartStay (guia para o time)
+# Como rodar o projeto
 
-Repositório: **https://github.com/DeVini02/smartstay-kiosk-ui**
+Pra ver o totem funcionando com a API, precisam de **dois terminais abertos**.
 
-Vocês precisam de **dois programas rodando ao mesmo tempo**: a API (back) e o totem (front).
-
----
-
-## Pré-requisitos
-
-| Ferramenta | Versão recomendada | Para quê |
-|------------|-------------------|----------|
-| **Node.js** | 18 ou 20 | Totem (front) |
-| **Python** | 3.11 ou 3.12 | API (back) — evitem 3.14 por enquanto |
-| **Git** | qualquer recente | Clonar o repo |
-
-**Opcional:** Docker Desktop — só se quiserem PostgreSQL em vez de SQLite.
+Repo: https://github.com/DeVini02/smartstay-kiosk-ui
 
 ---
 
-## 1. Clonar o projeto
+## O que instalar antes
+
+- **Node** (18 ou 20) — pro totem  
+- **Python 3.11 ou 3.12** — pra API (3.14 deu problema aqui, melhor não usar)  
+- **Git** — pra clonar  
+
+Docker é opcional, só se quiserem PostgreSQL. Pra testar em casa o SQLite resolve.
+
+---
+
+## Clonar
 
 ```bash
 git clone https://github.com/DeVini02/smartstay-kiosk-ui.git
@@ -27,20 +25,16 @@ cd smartstay-kiosk-ui
 
 ---
 
-## 2. Subir a API (backend)
-
-Abra um terminal na pasta `smartstay-backend`.
-
-### Windows (mais fácil — sem Docker)
+## Terminal 1 — API (back)
 
 ```powershell
 cd smartstay-backend
 .\run-local.ps1
 ```
 
-Na primeira vez ele cria o ambiente virtual e instala as dependências. Pode demorar 1–2 minutos.
+Na primeira vez demora um pouco (venv + pip).
 
-### Manual (se o script não funcionar)
+Se o script falhar, na mão:
 
 ```powershell
 cd smartstay-backend
@@ -51,109 +45,82 @@ $env:DATABASE_URL = "sqlite:///./smartstay.db"
 uvicorn app.main:app --reload --port 8000
 ```
 
-### Conferir se a API está no ar
+Testa no browser:
 
-Abra no navegador:
+- http://127.0.0.1:8000/health — tem que aparecer ok  
+- http://127.0.0.1:8000/docs — documentação da API  
 
-- **Health:** http://127.0.0.1:8000/health → deve mostrar `"status": "ok"`
-- **Swagger (testar endpoints):** http://127.0.0.1:8000/docs
-
-**Deixe este terminal aberto** enquanto usam o totem.
+**Não fecha esse terminal** enquanto usa o totem.
 
 ---
 
-## 3. Subir o totem (front-end)
+## Terminal 2 — Totem (front)
 
-Abra **outro** terminal na raiz do repo (`smartstay-kiosk-ui`).
+Na pasta raiz do repo (`smartstay-kiosk-ui`):
 
 ```bash
 npm install
 npm run dev
 ```
 
-Abra no navegador:
+Abre: http://localhost:8080
 
-- **Totem:** http://localhost:8080
-
-O front já está configurado para chamar a API em `http://127.0.0.1:8000` (arquivo `.env.development`).
+O front já aponta pra API em `127.0.0.1:8000` (`.env.development`).
 
 ---
 
-## 4. Roteiro de teste (demo)
+## Testar rápido
 
-Com API + totem rodando:
+**Check-in**
 
-### Check-in
+1. Tela inicial → idioma → Check-in  
+2. Código **2847** (ou CPF **12345678901**) → buscar  
+3. Confirma → LGPD → aceita  
+4. Câmera (espera ou clica em capturar)  
+5. Processando → aparece a chave com QR  
 
-1. Toque na tela inicial → escolha idioma  
-2. Menu → **Check-in**  
-3. Digite o código **`2847`** (ou CPF `12345678901`) → Buscar  
-4. Confirme os dados → LGPD → aceite  
-5. Tela da câmera (aguarde ou “Capturar agora”)  
-6. Processando → chave digital com **QR gerado pela API**  
+**Check-out**
 
-### Check-out
+Só funciona direito se você fez check-in **antes na mesma sessão** (senão a API não acha estadia ativa).
 
-1. Depois de um check-in na **mesma sessão**, volte ao menu  
-2. **Check-out** → identificação facial → resumo → confirmar → avaliação  
-
-> **Importante:** o check-out na API exige reserva com status `checked_in`. Por isso façam o check-in antes na mesma sessão.
+Menu → Check-out → segue o fluxo.
 
 ---
 
-## Dados de teste (seed automático)
+## Dados de teste
 
-| Campo | Valor |
-|-------|--------|
-| Código no totem | `2847` |
-| Código completo | `RES-2026-2847` |
-| CPF | `12345678901` |
-| Quarto | 412 |
-| Hóspede | V. da Silva (recorrente) |
-| Primeira viagem | código `1001`, CPF `98765432100` |
+- Código: **2847**  
+- CPF: **12345678901**  
+- Quarto: **412**, hóspede **V. da Silva** (já tem histórico no sistema)  
+- Outro hóspede (1ª vez): código **1001**, CPF **98765432100**  
 
 ---
 
-## Problemas comuns
+## Deu ruim?
 
-### “Sem conexão” / erro ao buscar reserva
+**“Sem conexão” no totem** — API provavelmente não tá rodando. Volta no terminal 1.
 
-- A API não está rodando → subam o passo 2 de novo  
-- Porta 8000 ocupada → fechem outro processo ou mudem a porta  
+**pip não instala** — troca pro Python 3.12.
 
-### `pip install` falha (Python 3.14)
+**Totem abre mas parece mock** — confere o /health da API e reinicia o `npm run dev`.
 
-Instalem **Python 3.12**: https://www.python.org/downloads/  
-Marquem “Add to PATH” na instalação.
-
-### Totem abre mas dados não mudam
-
-- Confiram se a API está em http://127.0.0.1:8000/health  
-- Reiniciem `npm run dev` após clonar  
-
-### Docker (opcional)
-
-Quem tiver Docker Desktop:
+**Docker** (quem tiver):
 
 ```bash
 cd smartstay-backend
 docker compose up --build
 ```
 
-Usa PostgreSQL em vez de SQLite. O totem continua igual (`npm run dev`).
-
 ---
 
-## Resumo rápido (cola no grupo)
+## Cola pro grupo
 
 ```
-Terminal 1:  cd smartstay-backend  →  .\run-local.ps1
-Terminal 2:  cd smartstay-kiosk-ui  →  npm install  →  npm run dev
-Navegador:   http://localhost:8080  (totem)
-             http://127.0.0.1:8000/docs  (API)
-Teste:       código 2847
+Terminal 1: cd smartstay-backend → .\run-local.ps1
+Terminal 2: npm install → npm run dev
+Totem: http://localhost:8080
+API: http://127.0.0.1:8000/docs
+Código teste: 2847
 ```
 
----
-
-Dúvidas sobre a API → ver também `smartstay-backend/README.md`.
+API com mais detalhe: `smartstay-backend/README.md`
