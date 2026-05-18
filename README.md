@@ -17,24 +17,49 @@ O diferencial é a **personalização para hóspedes recorrentes**: o sistema re
 
 ---
 
-## Estrutura
+## Estrutura deste repositório
 
-Este ecossistema é composto por repositórios separados:
+| Pasta / área | O que é |
+|--------------|---------|
+| `src/` | Front-end do totem (React + Vite) |
+| [`smartstay-backend/`](./smartstay-backend/) | **API REST** (Python + FastAPI) — reservas, check-in/out, chaves digitais, LGPD, IoT |
 
-| Repositório | O que é |
-|-------------|---------|
-| `smartstay-totem` | Front-end do totem (este repositório) |
-| `smartstay-app` | Front-end do app mobile do hóspede |
-| `smartstay-backend` | API e banco de dados (a ser criado) |
+Repositório futuro: `smartstay-app` (app mobile do hóspede).
 
 ---
 
 ## Tecnologias
 
 - **Front-end:** React + Vite + Tailwind CSS
-- **Back-end:** Python + FastAPI (a desenvolver)
-- **Banco de dados:** PostgreSQL (a desenvolver)
-- **Reconhecimento facial:** face-api.js — roda localmente, sem enviar imagens para servidore
+- **Back-end:** Python + FastAPI + SQLAlchemy ([ver `smartstay-backend/README.md`](./smartstay-backend/README.md))
+- **Banco de dados:** SQLite (dev) ou PostgreSQL (Docker)
+- **Reconhecimento facial:** face-api.js — roda localmente, sem enviar imagens para servidor
+
+---
+
+## Como rodar o totem (front-end)
+
+```bash
+npm install
+npm run dev
+```
+
+Abre em http://localhost:5173
+
+---
+
+## Como rodar a API (back-end)
+
+Sem Docker (SQLite):
+
+```powershell
+cd smartstay-backend
+.\run-local.ps1
+```
+
+Documentação da API: http://localhost:8000/docs
+
+Detalhes, endpoints e dados de teste: **[smartstay-backend/README.md](./smartstay-backend/README.md)**
 
 ---
 
@@ -43,10 +68,11 @@ Este ecossistema é composto por repositórios separados:
 ### Pronto
 - Telas do totem: check-in, check-out, telas de erro e consentimento LGPD
 - Design system definido (cores, fontes, componentes)
-- Fluxo de personalização IoT
+- Fluxo de personalização IoT (front)
 - Painel de acessibilidade
+- **API back-end:** reservas, check-in/out, chave digital, LGPD, IoT simulado, PMS simulado, Swagger
 
 ### Em desenvolvimento
+- Integração totem ↔ API (front ainda usa mocks)
 - App mobile do hóspede
-- Back-end e banco de dados
 - Reconhecimento facial real (hoje só exibe a câmera)

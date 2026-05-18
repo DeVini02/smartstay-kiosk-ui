@@ -1,0 +1,1 @@
+"""SmartStay Backend — API FastAPI."""
