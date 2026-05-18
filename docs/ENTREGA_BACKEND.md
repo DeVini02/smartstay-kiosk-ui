@@ -4,7 +4,7 @@
 Repo: https://github.com/DeVini02/smartstay-kiosk-ui  
 Pasta: `smartstay-backend/`
 
-Fala, time. Resumo do que ficou pronto da minha parte e o que ainda depende de vocês.
+
 
 ---
 
