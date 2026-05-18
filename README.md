@@ -26,6 +26,13 @@ O diferencial é a **personalização para hóspedes recorrentes**: o sistema re
 
 Repositório futuro: `smartstay-app` (app mobile do hóspede).
 
+### Documentação para o time
+
+| Documento | Para quê |
+|-----------|----------|
+| [**Como rodar**](./docs/COMO_RODAR.md) | Passo a passo: API + totem + teste com código `2847` |
+| [**Entrega backend**](./docs/ENTREGA_BACKEND.md) | O que foi feito, o que falta e divisão de tarefas |
+
 ---
 
 ## Tecnologias
