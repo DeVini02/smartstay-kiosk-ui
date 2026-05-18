@@ -1,6 +1,6 @@
 # Entrega do backend + integração — o que foi feito e o que falta
 
-**Responsável:** [seu nome]  
+**Responsável:** Enzo *(ajuste o nome se necessário)*  
 **Repositório:** https://github.com/DeVini02/smartstay-kiosk-ui  
 **Pasta do back:** `smartstay-backend/`  
 **Status:** ✅ Parte de backend + integração com totem **concluída para MVP**
@@ -126,7 +126,7 @@ Se a API não subir ou o totem não achar reserva:
 
 1. Conferir `COMO_RODAR.md`  
 2. Testar http://127.0.0.1:8000/health  
-3. Chamar [seu nome] com print da tela + terminal  
+3. Chamar o Enzo (back) com print da tela + terminal  
 
 ---
 
