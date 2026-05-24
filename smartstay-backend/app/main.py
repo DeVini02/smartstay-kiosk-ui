@@ -5,18 +5,19 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import Base, SessionLocal, engine
-from app.routers import checkin, checkout, guests, health, iot, keys, reservations
+from app.routers import checkin, checkout, demo, guests, health, iot, keys, reservations
 from app.seed import seed_database
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    Base.metadata.create_all(bind=engine)
-    db = SessionLocal()
-    try:
-        seed_database(db)
-    finally:
-        db.close()
+    if settings.environment == "development" or settings.demo_mode:
+        Base.metadata.create_all(bind=engine)
+        db = SessionLocal()
+        try:
+            seed_database(db)
+        finally:
+            db.close()
     yield
 
 
@@ -48,6 +49,7 @@ app.include_router(checkout.router, prefix=prefix)
 app.include_router(guests.router, prefix=prefix)
 app.include_router(keys.router, prefix=prefix)
 app.include_router(iot.router, prefix=prefix)
+app.include_router(demo.router, prefix=prefix)
 
 
 @app.get("/")

@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:5173,http://localhost:8080"
     secret_key: str = "dev-secret-change-in-production"
     environment: str = "development"
+    demo_mode: bool = False
+    kiosk_api_key: str | None = None
 
     @property
     def cors_origin_list(self) -> list[str]:

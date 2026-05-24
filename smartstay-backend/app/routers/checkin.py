@@ -1,8 +1,9 @@
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
 
+from app.config import settings
 from app.database import get_db
 from app.models.guest import ConsentLog, FaceEmbedding, Guest
 from app.models.reservation import Reservation
@@ -17,12 +18,17 @@ from app.schemas.checkin import (
     FaceVerifyResponse,
 )
 from app.schemas.common import GuestProfileResponse
+from app.security import require_kiosk_auth
 from app.services.ids import new_id, new_token
 from app.services.iot import apply_guest_preferences
 from app.services.mappers import guest_to_profile, reservation_to_response
 from app.services.pms import PmsService
 
-router = APIRouter(prefix="/check-in", tags=["check-in"])
+router = APIRouter(
+    prefix="/check-in",
+    tags=["check-in"],
+    dependencies=[Depends(require_kiosk_auth)],
+)
 
 
 def _get_session(db: Session, session_id: str) -> CheckInSession:
@@ -45,7 +51,11 @@ def start_check_in(body: CheckInStartRequest, db: Session = Depends(get_db)) -> 
     res = (
         db.query(Reservation)
         .options(joinedload(Reservation.guest).joinedload(Guest.face_embeddings))
-        .filter(Reservation.id == body.reservation_id, Reservation.status == "confirmed")
+        .filter(
+            Reservation.id == body.reservation_id,
+            Reservation.status == "confirmed",
+            Reservation.check_out >= date.today(),
+        )
         .first()
     )
     if not res:
@@ -136,7 +146,7 @@ def verify_face(
             .filter(FaceEmbedding.vector_hash == body.vector_hash, FaceEmbedding.is_active.is_(True))
             .first()
         )
-    elif body.simulate_match:
+    elif body.simulate_match and settings.demo_mode:
         embedding = (
             db.query(FaceEmbedding)
             .filter(FaceEmbedding.guest_id == guest.id, FaceEmbedding.is_active.is_(True))
@@ -165,8 +175,25 @@ async def complete_check_in(
     db: Session = Depends(get_db),
 ) -> CheckInCompleteResponse:
     session = _get_session(db, session_id)
+    if session.status == "completed" and session.digital_key:
+        key = session.digital_key
+        return CheckInCompleteResponse(
+            session_id=session.id,
+            digital_key_token=key.token,
+            qr_payload=key.qr_payload,
+            room=session.reservation.room,
+            guest_name=session.reservation.guest_name,
+            wifi_ssid=f"SmartStay-{session.reservation.room}",
+            wifi_password=f"STAY{session.reservation.room}",
+            iot_commands=[],
+            apply_personalization=False,
+        )
+
     if session.status not in ("consent_given", "face_verified", "started"):
-        pass  # permite completar após consent mesmo sem face no MVP
+        raise HTTPException(409, "Sessão de check-in não está pronta para conclusão.")
+
+    if not settings.demo_mode and not session.face_verified:
+        raise HTTPException(409, "Verificação facial obrigatória antes de concluir o check-in.")
 
     res = session.reservation
     guest = session.guest

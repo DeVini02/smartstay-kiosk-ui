@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { ScreenShell } from "@/components/ScreenShell";
 import { GlassCard } from "@/components/GlassCard";
 import { GhostButton } from "@/components/GhostButton";
 import { Switch } from "@/components/ui/switch";
 import { useCheckIn } from "@/context/CheckInContext";
 import { usePersonalization } from "@/contexts/PersonalizationContext";
+import { resetDemoData } from "@/lib/api/client";
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -13,6 +15,18 @@ const Admin = () => {
   const { isReturningGuest, setIsReturningGuest, profile } = usePersonalization();
   const [forceFaceFail, setForceFaceFail] = useState(false);
   const [forceOffline, setForceOffline] = useState(false);
+
+  const resetDemo = async () => {
+    try {
+      const result = await resetDemoData();
+      setReservation(null);
+      toast.success("Demo resetado", {
+        description: `Check-in ${result.checkin_code} · checkout ${result.checkout_code}`,
+      });
+    } catch {
+      toast.error("Não foi possível resetar os dados demo");
+    }
+  };
 
   return (
     <ScreenShell>
@@ -75,6 +89,9 @@ const Admin = () => {
       </div>
 
       <div className="flex flex-col gap-2 mt-auto pt-6">
+        <GhostButton onClick={() => void resetDemo()}>
+          QA · resetar códigos demo
+        </GhostButton>
         <GhostButton onClick={() => navigate("/test/all-screens")}>
           QA · ver todas as telas
         </GhostButton>

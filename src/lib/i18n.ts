@@ -32,12 +32,15 @@ const pt: Dict = {
   "menu.checkout": "Fazer check-out",
   "menu.info": "Informações do hotel",
   "menu.reception": "Chamar recepção",
+  "menu.info_soon": "Informações do hotel em desenvolvimento",
+  "menu.reception_called": "Recepção chamada",
+  "menu.reception_desc": "Um atendente foi notificado para ajudar no totem.",
 
   // Reservation
   "res.title": "Localizar reserva",
   "res.subtitle": "Digite uma das opções abaixo",
   "res.code_label": "Código da reserva",
-  "res.doc_label": "CPF ou e-mail",
+  "res.doc_label": "CPF",
   "res.search": "Buscar reserva →",
   "res.no_code": "Não tenho código · ir à recepção",
 
@@ -281,11 +284,14 @@ const en: Dict = {
   "menu.checkout": "Check out",
   "menu.info": "Hotel information",
   "menu.reception": "Call reception",
+  "menu.info_soon": "Hotel information is in development",
+  "menu.reception_called": "Reception called",
+  "menu.reception_desc": "A staff member was notified to help at the kiosk.",
 
   "res.title": "Find reservation",
   "res.subtitle": "Enter one of the options below",
   "res.code_label": "Reservation code",
-  "res.doc_label": "ID or e-mail",
+  "res.doc_label": "Document number",
   "res.search": "Search reservation →",
   "res.no_code": "I don't have a code · go to reception",
 
@@ -513,11 +519,14 @@ const es: Dict = {
   "menu.checkout": "Hacer check-out",
   "menu.info": "Información del hotel",
   "menu.reception": "Llamar a recepción",
+  "menu.info_soon": "Información del hotel en desarrollo",
+  "menu.reception_called": "Recepción llamada",
+  "menu.reception_desc": "Un asistente fue notificado para ayudar en el tótem.",
 
   "res.title": "Buscar reserva",
   "res.subtitle": "Ingresa una de las opciones abajo",
   "res.code_label": "Código de la reserva",
-  "res.doc_label": "DNI o e-mail",
+  "res.doc_label": "DNI / CPF",
   "res.search": "Buscar reserva →",
   "res.no_code": "No tengo código · ir a recepción",
 

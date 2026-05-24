@@ -16,8 +16,13 @@ import {
   type FontScaleLevel,
 } from "@/hooks/useAccessibility";
 import { useT } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 
-export const AccessibilityFAB = () => {
+interface AccessibilityFABProps {
+  variant?: "floating" | "header";
+}
+
+export const AccessibilityFAB = ({ variant = "floating" }: AccessibilityFABProps) => {
   const [open, setOpen] = useState(false);
   const t = useT();
   const { fontScale, setFontScale, highContrast, setHighContrast } =
@@ -29,9 +34,9 @@ export const AccessibilityFAB = () => {
     });
 
   const fontLabels: { lvl: FontScaleLevel; size: string; label: string }[] = [
-    { lvl: 0, size: "13px", label: t("a11y.font_small") },
-    { lvl: 1, size: "16px", label: t("a11y.font_default") },
-    { lvl: 2, size: "20px", label: t("a11y.font_large") },
+    { lvl: 0, size: "18px", label: t("a11y.font_small") },
+    { lvl: 1, size: "22px", label: t("a11y.font_default") },
+    { lvl: 2, size: "26px", label: t("a11y.font_large") },
   ];
 
   return (
@@ -40,9 +45,14 @@ export const AccessibilityFAB = () => {
         whileTap={{ scale: 0.92 }}
         onClick={() => setOpen(true)}
         aria-label={t("a11y.open")}
-        className="absolute top-4 right-4 z-50 w-12 h-12 rounded-full glass flex items-center justify-center text-white/85 hover:text-white"
+        className={cn(
+          "z-50 rounded-full glass flex items-center justify-center text-white/85 hover:text-white",
+          variant === "floating"
+            ? "absolute right-4 bottom-[88px] w-12 h-12"
+            : "relative w-9 h-9 flex-shrink-0"
+        )}
       >
-        <Accessibility size={20} aria-hidden="true" />
+        <Accessibility size={variant === "floating" ? 20 : 18} aria-hidden="true" />
       </motion.button>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -58,25 +68,27 @@ export const AccessibilityFAB = () => {
 
           <div className="flex flex-col gap-5 mt-2">
             <Section title={t("a11y.font")}>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-3 gap-2 w-full">
                 {fontLabels.map((f) => (
                   <button
                     key={f.lvl}
                     onClick={() => setFontScale(f.lvl)}
                     aria-label={t("a11y.font_aria", { label: f.label })}
                     aria-pressed={fontScale === f.lvl}
-                    className={`flex-1 h-14 rounded-md border transition-colors flex flex-col items-center justify-center ${
+                    className={`h-20 rounded-md border-2 transition-colors flex flex-col items-center justify-center gap-1 px-2 ${
                       fontScale === f.lvl
-                        ? "bg-brand-gradient border-transparent text-white"
-                        : "bg-glass-bg border-glass-border text-text-secondary"
+                        ? "bg-brand-gradient border-brand-primary text-white shadow-[0_8px_22px_-12px_rgba(167,139,250,0.9)]"
+                        : "bg-glass-bg border-glass-border-strong text-text-secondary hover:text-text-primary hover:bg-white/10"
                     }`}
                   >
                     <span
-                      style={{ fontSize: f.size, fontWeight: 500 }}
+                      className="leading-none"
+                      style={{ fontSize: f.size, fontWeight: 700 }}
                       aria-hidden="true"
                     >
                       A
                     </span>
+                    <span className="text-[10px] leading-tight text-center">{f.label}</span>
                   </button>
                 ))}
               </div>

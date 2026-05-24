@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { breathingDot } from "@/lib/animations";
 import { StepProgress } from "./StepProgress";
 import { cn } from "@/lib/utils";
+import { areDebugRoutesEnabled } from "@/lib/api/config";
+import { AccessibilityFAB } from "@/components/AccessibilityFAB";
 
 interface ScreenHeaderProps {
   status?: "ok" | "warn";
@@ -18,6 +20,7 @@ export const ScreenHeader = ({
 }: ScreenHeaderProps) => {
   const [time, setTime] = useState(() => formatTime(new Date()));
   const navigate = useNavigate();
+  const debugRoutes = areDebugRoutesEnabled();
   const tapsRef = useRef(0);
   const tapTimerRef = useRef<number | null>(null);
 
@@ -27,6 +30,7 @@ export const ScreenHeader = ({
   }, []);
 
   const handleLabelTap = () => {
+    if (!debugRoutes) return;
     tapsRef.current += 1;
     if (tapTimerRef.current) window.clearTimeout(tapTimerRef.current);
     tapTimerRef.current = window.setTimeout(() => {
@@ -56,9 +60,12 @@ export const ScreenHeader = ({
           />
           <span className="text-label text-text-secondary">SMARTSTAY</span>
         </button>
-        <span className="text-mono-tiny text-text-secondary tracking-wider">
-          {time}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-mono-tiny text-text-secondary tracking-wider">
+            {time}
+          </span>
+          <AccessibilityFAB variant="header" />
+        </div>
       </div>
       {step && (
         <div className="mt-3">

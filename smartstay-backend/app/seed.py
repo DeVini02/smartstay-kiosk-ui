@@ -13,11 +13,74 @@ from app.models.session import (
 )
 
 
+def reset_demo_database(db: Session) -> dict:
+    now = datetime.now(timezone.utc)
+    _sync_demo_records(db, now)
+    return {
+        "message": "Demo data reset.",
+        "checkin_code": "2847",
+        "checkout_code": "5502",
+    }
+
+
+def _sync_demo_records(db: Session, now: datetime) -> None:
+    today = now.date()
+
+    demo_res = db.get(Reservation, "res_demo_412")
+    if demo_res:
+        demo_res.check_in = today
+        demo_res.check_out = today + timedelta(days=4)
+        demo_res.status = "confirmed"
+
+        demo_session_ids = [
+            row[0]
+            for row in db.query(CheckInSession.id)
+            .filter(CheckInSession.reservation_id == demo_res.id)
+            .all()
+        ]
+        if demo_session_ids:
+            db.query(IoTCommandLog).filter(
+                IoTCommandLog.check_in_session_id.in_(demo_session_ids)
+            ).delete(synchronize_session=False)
+
+        db.query(DigitalKey).filter(DigitalKey.reservation_id == demo_res.id).delete(
+            synchronize_session=False
+        )
+
+    demo_guest = db.get(Guest, "g_v_silva_001")
+    if demo_guest:
+        demo_guest.total_stays = 7
+        demo_guest.average_rating = 4.8
+        demo_guest.consents = {"comfort": True, "stay": True, "consumption": False}
+
+    maria_res = db.get(Reservation, "res_maria_601")
+    if maria_res:
+        maria_res.check_in = today - timedelta(days=2)
+        maria_res.check_out = today + timedelta(days=1)
+        maria_res.status = "checked_in"
+
+    maria_guest = db.get(Guest, "g_m_oliveira_001")
+    if maria_guest:
+        maria_guest.total_stays = 5
+        maria_guest.average_rating = 4.6
+        maria_guest.consents = {"comfort": True, "stay": True, "consumption": True}
+
+    maria_key = db.get(DigitalKey, "dk_maria_001")
+    if maria_key:
+        maria_key.valid_from = now - timedelta(days=2)
+        maria_key.valid_until = now + timedelta(days=1)
+        maria_key.revoked = False
+
+    db.commit()
+
+
 def seed_database(db: Session) -> None:
+    now = datetime.now(timezone.utc)
     if db.query(Guest).filter(Guest.id == "g_v_silva_001").first():
+        _sync_demo_records(db, now)
         return
 
-    now = datetime.now(timezone.utc)
+    today = now.date()
 
     # =====================================================================
     # HOSPEDE 1: Vinicius da Silva (retornante, 7 estadias)
@@ -95,8 +158,8 @@ def seed_database(db: Session) -> None:
         room_type="Standard duplo",
         floor=4,
         wing="leste",
-        check_in=date(2026, 4, 28),
-        check_out=date(2026, 5, 2),
+        check_in=today,
+        check_out=today + timedelta(days=4),
         status="confirmed",
     )
     db.add(reservation)
@@ -111,8 +174,8 @@ def seed_database(db: Session) -> None:
         room_type="Superior",
         floor=2,
         wing="oeste",
-        check_in=date(2026, 3, 10),
-        check_out=date(2026, 3, 14),
+        check_in=today - timedelta(days=75),
+        check_out=today - timedelta(days=71),
         status="checked_out",
         created_at=now - timedelta(days=72),
     )
@@ -245,8 +308,8 @@ def seed_database(db: Session) -> None:
             room_type="Standard",
             floor=3,
             wing="oeste",
-            check_in=date(2026, 5, 18),
-            check_out=date(2026, 5, 20),
+            check_in=today + timedelta(days=7),
+            check_out=today + timedelta(days=9),
             status="confirmed",
         )
     )
@@ -316,8 +379,8 @@ def seed_database(db: Session) -> None:
         room_type="Luxo",
         floor=5,
         wing="leste",
-        check_in=date(2026, 5, 20),
-        check_out=date(2026, 5, 25),
+        check_in=today + timedelta(days=1),
+        check_out=today + timedelta(days=5),
         status="confirmed",
     )
     db.add(res_carlos)
@@ -415,8 +478,8 @@ def seed_database(db: Session) -> None:
         room_type="Suite Master",
         floor=6,
         wing="leste",
-        check_in=date(2026, 5, 19),
-        check_out=date(2026, 5, 24),
+        check_in=today - timedelta(days=2),
+        check_out=today + timedelta(days=1),
         status="checked_in",
         created_at=now - timedelta(days=5),
     )

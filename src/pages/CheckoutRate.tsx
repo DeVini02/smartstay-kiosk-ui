@@ -7,9 +7,10 @@ import { GlassCard } from "@/components/GlassCard";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { GhostButton } from "@/components/GhostButton";
 import { StatusBadge } from "@/components/StatusBadge";
+import { GenericError } from "@/components/errors/GenericError";
 import { useT } from "@/lib/i18n";
 import { useCheckIn } from "@/context/CheckInContext";
-import { isApiEnabled } from "@/lib/api/config";
+import { isApiEnabled, isDemoMode } from "@/lib/api/config";
 import { rateCheckout } from "@/lib/api/client";
 
 const CheckoutRate = () => {
@@ -17,17 +18,36 @@ const CheckoutRate = () => {
   const t = useT();
   const { checkoutSessionId } = useCheckIn();
   const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [error, setError] = useState(false);
+  const canSend = rating > 0;
 
   const finish = async () => {
+    if (!canSend) return;
     if (isApiEnabled() && checkoutSessionId && rating > 0) {
       try {
-        await rateCheckout(checkoutSessionId, rating);
+        await rateCheckout(checkoutSessionId, rating, comment.trim() || undefined);
       } catch {
-        // ignore
+        if (!isDemoMode()) {
+          setError(true);
+          return;
+        }
       }
     }
     navigate("/checkout/goodbye");
   };
+
+  if (error) {
+    return (
+      <ScreenShell>
+        <GenericError
+          errorCode="CHECKOUT-RATE"
+          onHome={() => navigate("/checkout/goodbye")}
+          onReception={() => navigate("/menu")}
+        />
+      </ScreenShell>
+    );
+  }
 
   return (
     <ScreenShell>
@@ -51,7 +71,7 @@ const CheckoutRate = () => {
                 onClick={() => setRating(n)}
                 aria-label={n > 1 ? t("cr.aria_stars", { n }) : t("cr.aria_star", { n })}
                 role="radio"
-                aria-checked={filled}
+                aria-checked={rating === n}
                 className="p-1"
               >
                 <Star
@@ -73,15 +93,19 @@ const CheckoutRate = () => {
 
       <GlassCard className="mt-3">
         <span className="text-label text-text-secondary">{t("cr.comment")}</span>
-        <div
-          className="mt-2 h-[60px] rounded-md bg-white/[0.03] border border-white/10"
-          role="textbox"
+        <textarea
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          maxLength={240}
+          className="mt-2 h-[72px] w-full resize-none rounded-md bg-white/[0.03] border border-white/10 px-3 py-2 text-body text-text-primary placeholder:text-text-tertiary focus:outline-none focus:ring-2 focus:ring-brand-primary/70"
           aria-label={t("cr.comment")}
         />
       </GlassCard>
 
       <div className="flex flex-col gap-3 mt-auto pt-6">
-        <PrimaryButton onClick={() => void finish()}>{t("cr.send")}</PrimaryButton>
+        <PrimaryButton onClick={() => void finish()} disabled={!canSend}>
+          {t("cr.send")}
+        </PrimaryButton>
         <GhostButton onClick={() => navigate("/checkout/goodbye")}>
           {t("common.skip_finish")}
         </GhostButton>

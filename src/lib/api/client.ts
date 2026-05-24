@@ -1,4 +1,4 @@
-import { API_BASE } from "./config";
+import { API_BASE, KIOSK_API_KEY, isDemoMode } from "./config";
 import type {
   ApiCheckInComplete,
   ApiCheckoutSummary,
@@ -20,6 +20,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     ...init,
     headers: {
       "Content-Type": "application/json",
+      ...(KIOSK_API_KEY ? { "X-SmartStay-Key": KIOSK_API_KEY } : {}),
       ...init?.headers,
     },
   });
@@ -37,10 +38,15 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-export const lookupReservation = (params: { code?: string; document?: string }) => {
+export const lookupReservation = (params: {
+  code?: string;
+  document?: string;
+  flow?: "checkin" | "checkout";
+}) => {
   const q = new URLSearchParams();
   if (params.code) q.set("code", params.code);
   if (params.document) q.set("document", params.document.replace(/\D/g, ""));
+  if (params.flow) q.set("flow", params.flow);
   return request<ApiReservation>(`/reservations/lookup?${q}`);
 };
 
@@ -62,19 +68,33 @@ export const postCheckInConsent = (
     body: JSON.stringify({ consents }),
   });
 
-export const postCheckInFace = (sessionId: string) =>
+export const postCheckInFace = (sessionId: string, faceEmbeddingId?: string | null) =>
   request<{ verified: boolean; is_returning_guest: boolean }>(`/check-in/${sessionId}/face`, {
     method: "POST",
-    body: JSON.stringify({ simulate_match: true }),
+    body: JSON.stringify(
+      isDemoMode()
+        ? { simulate_match: true }
+        : faceEmbeddingId
+          ? { face_embedding_id: faceEmbeddingId }
+          : { simulate_match: false }
+    ),
   });
 
 export const completeCheckIn = (sessionId: string) =>
   request<ApiCheckInComplete>(`/check-in/${sessionId}/complete`, { method: "POST" });
 
-export const checkoutIdentify = (reservationId: string) =>
+export const checkoutIdentify = (params: {
+  reservationId?: string;
+  faceEmbeddingId?: string;
+  vectorHash?: string;
+}) =>
   request<ApiCheckoutSummary>("/checkout/identify", {
     method: "POST",
-    body: JSON.stringify({ reservation_id: reservationId }),
+    body: JSON.stringify({
+      reservation_id: params.reservationId,
+      face_embedding_id: params.faceEmbeddingId,
+      vector_hash: params.vectorHash,
+    }),
   });
 
 export const confirmCheckout = (sessionId: string) =>
@@ -97,3 +117,8 @@ export const checkApiHealth = async (): Promise<boolean> => {
     return false;
   }
 };
+
+export const resetDemoData = () =>
+  request<{ message: string; checkin_code: string; checkout_code: string }>("/demo/reset", {
+    method: "POST",
+  });

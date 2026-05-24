@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { ScreenShell } from "@/components/ScreenShell";
 import { GlassCard } from "@/components/GlassCard";
 import { PrimaryButton } from "@/components/PrimaryButton";
@@ -22,8 +22,7 @@ const Confirm = () => {
   const [offline, setOffline] = useState(false);
 
   if (!reservation) {
-    navigate("/reservation", { replace: true });
-    return null;
+    return <Navigate to="/reservation" replace />;
   }
 
   const r = reservation;

@@ -67,3 +67,37 @@ def test_lgpd_export():
     r = client.get("/api/v1/guests/g_v_silva_001/export")
     assert r.status_code == 200
     assert r.json()["guest"]["guest_id"] == "g_v_silva_001"
+
+
+def test_checkout_lookup_and_face_identify():
+    lookup = client.get(
+        "/api/v1/reservations/lookup",
+        params={"code": "5502", "flow": "checkout"},
+    )
+    assert lookup.status_code == 200
+    assert lookup.json()["status"] == "checked_in"
+
+    summary = client.post(
+        "/api/v1/checkout/identify",
+        json={"face_embedding_id": "fe_g7h8i9"},
+    )
+    assert summary.status_code == 200
+    body = summary.json()
+    assert body["room"] == "601"
+    assert body["reservation"]["status"] == "checked_in"
+
+
+def test_demo_reset_restores_codes():
+    reset = client.post("/api/v1/demo/reset")
+    assert reset.status_code == 200
+
+    checkin = client.get("/api/v1/reservations/lookup", params={"code": "2847"})
+    assert checkin.status_code == 200
+    assert checkin.json()["status"] == "confirmed"
+
+    checkout = client.get(
+        "/api/v1/reservations/lookup",
+        params={"code": "5502", "flow": "checkout"},
+    )
+    assert checkout.status_code == 200
+    assert checkout.json()["status"] == "checked_in"

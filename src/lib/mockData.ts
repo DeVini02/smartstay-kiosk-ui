@@ -46,6 +46,10 @@ export type Reservation = typeof mockReservation;
 
 export type CheckoutSummaryData = {
   sessionId: string;
+  guestName?: string;
+  room?: string;
+  checkIn?: string;
+  checkOut?: string;
   nights: number;
   extras: { label: string; amount: number }[];
   totalAmount: number;

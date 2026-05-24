@@ -54,7 +54,7 @@ const CategoryCard = ({
   return (
     <div
       className={cn(
-        "relative rounded-lg p-4 border backdrop-blur-[10px] transition-colors",
+        "relative rounded-lg p-3 border backdrop-blur-[10px] transition-colors",
         active
           ? "bg-success/[0.06] border-success/30"
           : "bg-white/[0.03] border-white/10",
@@ -65,13 +65,13 @@ const CategoryCard = ({
         className="block w-full text-left focus:outline-none"
         aria-label={`${ariaLabel} · editar`}
       >
-        <div className="flex items-center gap-3">
-          <div className="w-[22px] h-[22px] flex items-center justify-center text-brand-primary">
+        <div className="flex items-center gap-2.5 pr-12">
+          <div className="w-5 h-5 flex items-center justify-center text-brand-primary">
             {icon}
           </div>
           <span className="flex-1 text-title text-text-primary">{title}</span>
         </div>
-        <p className="text-small text-text-secondary mt-2">{summary}</p>
+        <p className="text-small text-text-secondary mt-1.5">{summary}</p>
       </button>
       <div className="absolute top-3 right-3">
         <Switch
@@ -147,7 +147,7 @@ const MyProfile = () => {
   };
 
   return (
-    <ScreenShell>
+    <ScreenShell contentClassName="pb-10">
       <div className="flex items-center justify-between mt-2">
         <span className="text-label text-brand-primary">{t("p.profile.label")}</span>
         <button
@@ -164,8 +164,15 @@ const MyProfile = () => {
       <p className="text-body text-text-secondary mt-1">
         {t("p.profile.subtitle")}
       </p>
+      <p className="text-mono-tiny text-text-tertiary mt-2">
+        {t("p.profile.stats", {
+          stays: profile.totalStays,
+          year: memberYear,
+          rating: profile.averageRating.toFixed(1),
+        })}
+      </p>
 
-      <div className="flex flex-col gap-3 mt-5">
+      <div className="flex flex-col gap-2.5 mt-4">
         <CategoryCard
           category="comfort"
           icon={<Thermometer size={20} />}
@@ -202,17 +209,7 @@ const MyProfile = () => {
         />
       </div>
 
-      <GlassCard className="mt-4 !py-2.5">
-        <div className="text-small text-text-secondary text-center">
-          {t("p.profile.stats", {
-            stays: profile.totalStays,
-            year: memberYear,
-            rating: profile.averageRating.toFixed(1),
-          })}
-        </div>
-      </GlassCard>
-
-      <div className="flex flex-col gap-2 mt-4">
+      <div className="flex flex-col gap-2 mt-3">
         <button
           onClick={() => setHistoryOpen(true)}
           className="text-small text-brand-primary self-start flex items-center gap-1.5"

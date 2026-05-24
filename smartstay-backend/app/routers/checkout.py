@@ -14,11 +14,16 @@ from app.schemas.checkout import (
     CheckoutRateResponse,
     CheckoutSummaryResponse,
 )
+from app.security import require_kiosk_auth
 from app.services.ids import new_id
 from app.services.mappers import reservation_to_response
 from app.services.pms import PmsService
 
-router = APIRouter(prefix="/checkout", tags=["checkout"])
+router = APIRouter(
+    prefix="/checkout",
+    tags=["checkout"],
+    dependencies=[Depends(require_kiosk_auth)],
+)
 
 
 def _get_checkout(db: Session, session_id: str) -> CheckoutSession:
@@ -40,6 +45,9 @@ def identify_for_checkout(
 ) -> CheckoutSummaryResponse:
     res: Reservation | None = None
 
+    if not (body.reservation_id or body.face_embedding_id or body.vector_hash):
+        raise HTTPException(400, "Informe reserva ou embedding facial para check-out.")
+
     if body.reservation_id:
         res = (
             db.query(Reservation)
@@ -50,9 +58,15 @@ def identify_for_checkout(
     elif body.face_embedding_id or body.vector_hash:
         embedding_query = db.query(FaceEmbedding)
         if body.face_embedding_id:
-            embedding = embedding_query.filter(FaceEmbedding.id == body.face_embedding_id).first()
+            embedding = embedding_query.filter(
+                FaceEmbedding.id == body.face_embedding_id,
+                FaceEmbedding.is_active.is_(True),
+            ).first()
         else:
-            embedding = embedding_query.filter(FaceEmbedding.vector_hash == body.vector_hash).first()
+            embedding = embedding_query.filter(
+                FaceEmbedding.vector_hash == body.vector_hash,
+                FaceEmbedding.is_active.is_(True),
+            ).first()
         if embedding:
             res = (
                 db.query(Reservation)
@@ -128,6 +142,7 @@ def confirm_checkout(session_id: str, db: Session = Depends(get_db)) -> Checkout
     session.status = "completed"
     session.completed_at = datetime.now(timezone.utc)
     PmsService.finalize_checkout(db, res, guest)
+    db.commit()
 
     return CheckoutConfirmResponse(
         session_id=session.id,

@@ -8,9 +8,9 @@ import { useT } from "@/lib/i18n";
 const CheckoutGoodbye = () => {
   const navigate = useNavigate();
   const t = useT();
-  const { reservation, reset } = useCheckIn();
+  const { checkoutSummary, reservation, reset } = useCheckIn();
   const firstName =
-    reservation?.guestName.split(" ")[0].replace(".", "") ?? "";
+    (checkoutSummary?.guestName ?? reservation?.guestName ?? "").split(" ")[0].replace(".", "");
   const [countdown, setCountdown] = useState(5);
 
   useEffect(() => {

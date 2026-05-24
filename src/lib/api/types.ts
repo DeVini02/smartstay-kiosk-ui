@@ -28,8 +28,17 @@ export interface ApiGuestProfile {
       lighting_brightness: number;
       curtain_position: string;
     };
-    stay?: Record<string, unknown>;
-    consumption?: Record<string, unknown>;
+    stay?: {
+      preferred_floor: string;
+      preferred_view: string;
+      bed_type: string;
+      smoking_room: boolean;
+    };
+    consumption?: {
+      favorite_frigobar: string[];
+      favorite_restaurant_items: string[];
+      preferred_check_out_time: string;
+    };
   };
 }
 

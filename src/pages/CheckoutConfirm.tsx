@@ -5,9 +5,11 @@ import { ScreenShell } from "@/components/ScreenShell";
 import { GlassCard } from "@/components/GlassCard";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { GhostButton } from "@/components/GhostButton";
+import { GenericError } from "@/components/errors/GenericError";
+import { NoConnection } from "@/components/errors/NoConnection";
 import { useT } from "@/lib/i18n";
 import { useCheckIn } from "@/context/CheckInContext";
-import { isApiEnabled } from "@/lib/api/config";
+import { isApiEnabled, isDemoMode } from "@/lib/api/config";
 import { confirmCheckout } from "@/lib/api/client";
 
 const CheckoutConfirm = () => {
@@ -15,21 +17,54 @@ const CheckoutConfirm = () => {
   const t = useT();
   const { checkoutSessionId } = useCheckIn();
   const [loading, setLoading] = useState(false);
+  const [offline, setOffline] = useState(false);
+  const [missingSession, setMissingSession] = useState(false);
   const items = [t("cc.item1"), t("cc.item2"), t("cc.item3"), t("cc.item4")];
 
   const handleConfirm = async () => {
+    setOffline(false);
+    setMissingSession(false);
+
+    if (isApiEnabled() && !checkoutSessionId && !isDemoMode()) {
+      setMissingSession(true);
+      return;
+    }
+
     setLoading(true);
     try {
       if (isApiEnabled() && checkoutSessionId) {
         await confirmCheckout(checkoutSessionId);
       }
     } catch {
-      // segue fluxo
+      if (!isDemoMode()) {
+        setOffline(true);
+        return;
+      }
     } finally {
       setLoading(false);
-      navigate("/checkout/rate");
     }
+    navigate("/checkout/rate");
   };
+
+  if (offline) {
+    return (
+      <ScreenShell step={{ total: 4, current: 3, accent: "warn" }} status="warn">
+        <NoConnection onReception={() => navigate("/menu")} />
+      </ScreenShell>
+    );
+  }
+
+  if (missingSession) {
+    return (
+      <ScreenShell step={{ total: 4, current: 3, accent: "warn" }} status="warn">
+        <GenericError
+          errorCode="CHECKOUT-NO-SESSION"
+          onHome={() => navigate("/checkout/identify")}
+          onReception={() => navigate("/menu")}
+        />
+      </ScreenShell>
+    );
+  }
 
   return (
     <ScreenShell step={{ total: 4, current: 3 }}>

@@ -16,7 +16,8 @@ export const mapReservation = (r: ApiReservation): Reservation & { id: string; g
 
 export const mapGuestProfile = (p: ApiGuestProfile): GuestProfile => {
   const c = p.preferences?.comfort;
-  const s = p.preferences?.stay as GuestProfile["preferences"]["stay"] | undefined;
+  const s = p.preferences?.stay;
+  const consumption = p.preferences?.consumption;
   return {
     guestId: p.guest_id,
     faceEmbeddingId: p.face_embedding_id ?? "",
@@ -34,7 +35,21 @@ export const mapGuestProfile = (p: ApiGuestProfile): GuestProfile => {
             curtainPosition: c.curtain_position as "open" | "closed" | "partial",
           }
         : undefined,
-      stay: s,
+      stay: s
+        ? {
+            preferredFloor: s.preferred_floor as "low" | "mid" | "high",
+            preferredView: s.preferred_view as "east" | "west" | "north" | "south" | "any",
+            bedType: s.bed_type as "double" | "twin" | "king",
+            smokingRoom: s.smoking_room,
+          }
+        : undefined,
+      consumption: consumption
+        ? {
+            favoriteFrigobar: consumption.favorite_frigobar,
+            favoriteRestaurantItems: consumption.favorite_restaurant_items,
+            preferredCheckOutTime: consumption.preferred_check_out_time,
+          }
+        : undefined,
     },
   };
 };

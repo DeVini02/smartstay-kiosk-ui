@@ -31,7 +31,7 @@ class FaceVerifyRequest(BaseModel):
 
     face_embedding_id: str | None = None
     vector_hash: str | None = None
-    simulate_match: bool = True
+    simulate_match: bool = False
 
 
 class FaceVerifyResponse(BaseModel):

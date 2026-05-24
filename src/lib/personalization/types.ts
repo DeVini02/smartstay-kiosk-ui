@@ -38,7 +38,7 @@ export interface GuestProfile {
 export interface IoTCommand {
   device: "thermostat" | "lighting" | "curtains" | "tv" | "music";
   action: string;
-  value: any;
+  value: unknown;
   status: "pending" | "in_progress" | "completed" | "failed";
   timestamp?: string;
 }

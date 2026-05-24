@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { ScreenShell } from "@/components/ScreenShell";
 import { GlassCard } from "@/components/GlassCard";
 import { PrimaryButton } from "@/components/PrimaryButton";
@@ -10,15 +10,30 @@ import { NoConnection } from "@/components/errors/NoConnection";
 import { useCheckIn, getDemoReservation } from "@/context/CheckInContext";
 import { useT } from "@/lib/i18n";
 import { isApiEnabled } from "@/lib/api/config";
-import { ApiError, lookupReservation } from "@/lib/api/client";
+import { ApiError, checkoutIdentify, lookupReservation } from "@/lib/api/client";
 import { mapReservation } from "@/lib/api/mappers";
 
 type Field = "code" | "doc" | null;
 
+const formatCpf = (value: string) => {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  const part1 = digits.slice(0, 3);
+  const part2 = digits.slice(3, 6);
+  const part3 = digits.slice(6, 9);
+  const part4 = digits.slice(9, 11);
+
+  if (digits.length > 9) return `${part1}.${part2}.${part3}-${part4}`;
+  if (digits.length > 6) return `${part1}.${part2}.${part3}`;
+  if (digits.length > 3) return `${part1}.${part2}`;
+  return part1;
+};
+
 const Reservation = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const flow = searchParams.get("flow") === "checkout" ? "checkout" : "checkin";
   const t = useT();
-  const { setReservation } = useCheckIn();
+  const { setCheckoutSessionId, setCheckoutSummary, setReservation } = useCheckIn();
   const [code, setCode] = useState("");
   const [doc, setDoc] = useState("");
   const [active, setActive] = useState<Field>(null);
@@ -36,6 +51,8 @@ const Reservation = () => {
   };
 
   const codeDisplay = `RES-2026-${(code + "____").slice(0, 4)}`;
+  const docDisplay = formatCpf(doc);
+  const canSearch = code.length === 4 || doc.length === 11;
 
   const handleSearch = async () => {
     setNotFound(false);
@@ -43,11 +60,11 @@ const Reservation = () => {
 
     if (!isApiEnabled()) {
       setReservation(getDemoReservation());
-      navigate("/confirm");
+      navigate(flow === "checkout" ? "/checkout/summary" : "/confirm");
       return;
     }
 
-    if (code.length < 4 && doc.length < 11) {
+    if (!canSearch) {
       setNotFound(true);
       return;
     }
@@ -57,8 +74,28 @@ const Reservation = () => {
       const data = await lookupReservation({
         code: code.length === 4 ? code : undefined,
         document: doc.length >= 11 ? doc : undefined,
+        flow,
       });
-      setReservation(mapReservation(data));
+      const mapped = mapReservation(data);
+      setReservation(mapped);
+
+      if (flow === "checkout") {
+        const summary = await checkoutIdentify({ reservationId: data.id });
+        setCheckoutSessionId(summary.session_id);
+        setCheckoutSummary({
+          sessionId: summary.session_id,
+          guestName: summary.guest_name,
+          room: summary.room,
+          checkIn: summary.reservation.check_in,
+          checkOut: summary.reservation.check_out,
+          nights: summary.nights,
+          extras: summary.extras,
+          totalAmount: summary.total_amount,
+        });
+        navigate("/checkout/summary");
+        return;
+      }
+
       navigate("/confirm");
     } catch (e) {
       if (e instanceof ApiError && e.status === 404) setNotFound(true);
@@ -119,13 +156,13 @@ const Reservation = () => {
               active === "doc" ? "border-brand-primary" : "border-white/15"
             }`}
           >
-            {doc || <span className="text-text-tertiary">000.000.000-00</span>}
+            {docDisplay || <span className="text-text-tertiary">000.000.000-00</span>}
           </button>
         </GlassCard>
       </div>
 
       <div className="flex flex-col gap-3 mt-auto pt-6">
-        <PrimaryButton onClick={handleSearch} disabled={loading}>
+        <PrimaryButton onClick={handleSearch} disabled={loading || !canSearch}>
           {loading ? t("common.loading") : t("res.search")}
         </PrimaryButton>
         <GhostButton onClick={() => navigate("/menu")}>{t("res.no_code")}</GhostButton>

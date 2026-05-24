@@ -5,11 +5,12 @@ import { ScreenShell } from "@/components/ScreenShell";
 import { GlassCard } from "@/components/GlassCard";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { GhostButton } from "@/components/GhostButton";
+import { NoConnection } from "@/components/errors/NoConnection";
 import { Switch } from "@/components/ui/switch";
 import { useCheckIn } from "@/context/CheckInContext";
 import { useT } from "@/lib/i18n";
 import { usePersonalization } from "@/contexts/PersonalizationContext";
-import { isApiEnabled } from "@/lib/api/config";
+import { isApiEnabled, isDemoMode } from "@/lib/api/config";
 import { postCheckInConsent } from "@/lib/api/client";
 
 const LGPD = () => {
@@ -18,6 +19,7 @@ const LGPD = () => {
   const { setConsentGiven, checkInSessionId } = useCheckIn();
   const { profile, setConsent } = usePersonalization();
   const [loading, setLoading] = useState(false);
+  const [offline, setOffline] = useState(false);
   const personalizationOn = !!(profile && (profile.consents.comfort || profile.consents.stay));
 
   const togglePersonalization = (v: boolean) => {
@@ -29,6 +31,7 @@ const LGPD = () => {
 
   const accept = async () => {
     setLoading(true);
+    setOffline(false);
     try {
       if (isApiEnabled() && checkInSessionId && profile) {
         await postCheckInConsent(checkInSessionId, profile.consents);
@@ -36,12 +39,24 @@ const LGPD = () => {
       setConsentGiven(true);
       navigate("/capture");
     } catch {
-      setConsentGiven(true);
-      navigate("/capture");
+      if (isDemoMode()) {
+        setConsentGiven(true);
+        navigate("/capture");
+      } else {
+        setOffline(true);
+      }
     } finally {
       setLoading(false);
     }
   };
+
+  if (offline) {
+    return (
+      <ScreenShell step={{ total: 6, current: 5, accent: "warn" }} status="warn">
+        <NoConnection onReception={() => navigate("/menu")} />
+      </ScreenShell>
+    );
+  }
 
   return (
     <ScreenShell step={{ total: 6, current: 5 }}>
@@ -52,8 +67,8 @@ const LGPD = () => {
         {t("lgpd.title")}
       </h1>
 
-      <GlassCard accent="purple" className="mt-5 flex-1 overflow-hidden">
-        <div className="h-full overflow-y-auto pr-1">
+      <GlassCard accent="purple" className="mt-5 flex-1 min-h-0 overflow-hidden">
+        <div className="h-full overflow-y-auto scrollbar-hidden pr-1">
           <p className="text-body text-text-primary mb-3">{t("lgpd.intro")}</p>
           <ul className="flex flex-col gap-2.5">
             {items.map((item) => (

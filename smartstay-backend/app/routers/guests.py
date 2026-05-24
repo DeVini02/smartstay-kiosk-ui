@@ -8,9 +8,14 @@ from app.models.guest import ConsentLog, FaceEmbedding, Guest
 from app.models.reservation import Reservation
 from app.schemas.common import GuestProfileResponse, MessageResponse
 from app.schemas.guest import ConsentLogEntry, ConsentUpdateItem, LgpdExportResponse, PreferencesPatchRequest
+from app.security import require_kiosk_auth
 from app.services.mappers import guest_to_profile
 
-router = APIRouter(prefix="/guests", tags=["guests"])
+router = APIRouter(
+    prefix="/guests",
+    tags=["guests"],
+    dependencies=[Depends(require_kiosk_auth)],
+)
 
 
 def _get_guest(db: Session, guest_id: str) -> Guest:

@@ -1,79 +1,122 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { User } from "lucide-react";
 import { ScreenShell } from "@/components/ScreenShell";
 import { GlassCard } from "@/components/GlassCard";
 import { GhostButton } from "@/components/GhostButton";
+import { FaceNotRecognized } from "@/components/errors/FaceNotRecognized";
+import { NoConnection } from "@/components/errors/NoConnection";
 import { breathingDot, pulseRing } from "@/lib/animations";
 import { useT } from "@/lib/i18n";
 import { useCheckIn } from "@/context/CheckInContext";
-import { isApiEnabled } from "@/lib/api/config";
-import { checkoutIdentify } from "@/lib/api/client";
+import { DEMO_CHECKOUT_FACE_ID, isApiEnabled, isDemoMode } from "@/lib/api/config";
+import { ApiError, checkoutIdentify } from "@/lib/api/client";
+import { usePersonalization } from "@/contexts/PersonalizationContext";
+import { useCameraPreview } from "@/hooks/useCameraPreview";
 
 const CheckoutIdentify = () => {
   const navigate = useNavigate();
   const t = useT();
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [cameraOk, setCameraOk] = useState<boolean | null>(null);
+  const {
+    videoRef,
+    status: cameraStatus,
+    isReady: cameraReady,
+    retry: retryCamera,
+    stopCamera,
+  } = useCameraPreview();
+  const [faceError, setFaceError] = useState(false);
+  const [offline, setOffline] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const { reservation, setCheckoutSessionId, setCheckoutSummary } = useCheckIn();
+  const { profile } = usePersonalization();
+  const cameraUnavailable = cameraStatus === "unavailable";
 
-  useEffect(() => {
-    if (!reservation) navigate("/reservation", { replace: true });
-  }, [reservation, navigate]);
+  const identify = useCallback(async () => {
+    if (submitting) return;
+    setSubmitting(true);
+    setFaceError(false);
+    setOffline(false);
 
-  const identify = async () => {
-    if (!isApiEnabled() || !reservation?.id) {
+    if (!isApiEnabled()) {
+      stopCamera();
       navigate("/checkout/summary");
       return;
     }
+
+    const faceEmbeddingId =
+      reservation?.id ? undefined : isDemoMode() ? DEMO_CHECKOUT_FACE_ID : profile?.faceEmbeddingId;
+
+    if (!reservation?.id && !faceEmbeddingId) {
+      stopCamera();
+      setFaceError(true);
+      setSubmitting(false);
+      return;
+    }
+
     try {
-      const summary = await checkoutIdentify(reservation.id);
+      const summary = await checkoutIdentify({
+        reservationId: reservation?.id,
+        faceEmbeddingId,
+      });
       setCheckoutSessionId(summary.session_id);
       setCheckoutSummary({
         sessionId: summary.session_id,
+        guestName: summary.guest_name,
+        room: summary.room,
+        checkIn: summary.reservation.check_in,
+        checkOut: summary.reservation.check_out,
         nights: summary.nights,
         extras: summary.extras,
         totalAmount: summary.total_amount,
       });
-    } catch {
-      // demo offline
-    }
-    navigate("/checkout/summary");
-  };
-
-  useEffect(() => {
-    let stream: MediaStream | null = null;
-    let cancelled = false;
-    (async () => {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "user" },
-          audio: false,
-        });
-        if (cancelled) return stream.getTracks().forEach((tr) => tr.stop());
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          await videoRef.current.play().catch(() => {});
-        }
-        setCameraOk(true);
-      } catch {
-        setCameraOk(false);
+      stopCamera();
+      navigate("/checkout/summary");
+    } catch (e) {
+      stopCamera();
+      if (e instanceof ApiError && e.status === 404) {
+        setFaceError(true);
+      } else {
+        setOffline(true);
       }
-    })();
-    return () => {
-      cancelled = true;
-      stream?.getTracks().forEach((tr) => tr.stop());
-    };
-  }, []);
+      setSubmitting(false);
+    }
+  }, [
+    navigate,
+    profile?.faceEmbeddingId,
+    reservation?.id,
+    setCheckoutSessionId,
+    setCheckoutSummary,
+    stopCamera,
+    submitting,
+  ]);
 
   useEffect(() => {
-    if (cameraOk !== true) return;
+    if (!cameraReady || submitting) return;
     const tm = setTimeout(() => {
       void identify();
     }, 4000);
     return () => clearTimeout(tm);
-  }, [cameraOk]);
+  }, [cameraReady, identify, submitting]);
+
+  if (offline) {
+    return (
+      <ScreenShell step={{ total: 4, current: 1, accent: "warn" }} status="warn">
+        <NoConnection onReception={() => navigate("/menu")} />
+      </ScreenShell>
+    );
+  }
+
+  if (faceError) {
+    return (
+      <ScreenShell step={{ total: 4, current: 1, accent: "warn" }} status="warn">
+        <FaceNotRecognized
+          onUseCode={() => navigate("/reservation?flow=checkout")}
+          onReception={() => navigate("/menu")}
+        />
+      </ScreenShell>
+    );
+  }
 
   return (
     <ScreenShell step={{ total: 4, current: 1 }}>
@@ -88,7 +131,7 @@ const CheckoutIdentify = () => {
         <div
           className="relative w-[170px] h-[170px] flex items-center justify-center"
           aria-live="polite"
-          aria-label={cameraOk === false ? t("cap.unavailable") : t("ci.identifying")}
+          aria-label={cameraUnavailable ? t("cap.unavailable") : t("ci.identifying")}
         >
           <motion.span
             variants={pulseRing}
@@ -103,24 +146,26 @@ const CheckoutIdentify = () => {
                 "radial-gradient(circle, rgba(167,139,250,0.35) 0%, rgba(167,139,250,0) 70%)",
             }}
           >
-            {cameraOk && (
-              <video
-                ref={videoRef}
-                playsInline
-                muted
-                className="absolute inset-0 w-full h-full object-cover"
-                style={{ transform: "scaleX(-1)" }}
-              />
-            )}
-            {cameraOk === false && (
+            <video
+              ref={videoRef}
+              playsInline
+              autoPlay
+              muted
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity ${
+                cameraReady ? "opacity-100" : "opacity-0"
+              }`}
+              style={{ transform: "scaleX(-1)" }}
+            />
+            {cameraUnavailable && (
               <div className="absolute inset-0 flex items-center justify-center text-small text-text-secondary px-4 text-center">
                 {t("cap.unavailable")}
               </div>
             )}
             <User
               size={64}
-              className="absolute inset-0 m-auto text-white"
-              style={{ opacity: 0.4 }}
+              className={`absolute inset-0 m-auto text-white transition-opacity ${
+                cameraReady ? "opacity-0" : "opacity-40"
+              }`}
               aria-hidden="true"
             />
             <div
@@ -156,7 +201,19 @@ const CheckoutIdentify = () => {
         </div>
       </GlassCard>
 
-      <GhostButton onClick={() => navigate("/reservation")}>{t("ci.use_code")}</GhostButton>
+      <div className="flex flex-col gap-3">
+        {cameraUnavailable && (
+          <GhostButton onClick={() => void retryCamera()}>{t("common.try_again")}</GhostButton>
+        )}
+        <GhostButton
+          onClick={() => {
+            stopCamera();
+            navigate("/reservation?flow=checkout");
+          }}
+        >
+          {t("ci.use_code")}
+        </GhostButton>
+      </div>
     </ScreenShell>
   );
 };

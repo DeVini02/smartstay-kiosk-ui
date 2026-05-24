@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Star } from "lucide-react";
+import { toast } from "sonner";
 import { ScreenShell } from "@/components/ScreenShell";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { GhostButton } from "@/components/GhostButton";
@@ -21,8 +22,22 @@ const Menu = () => {
         <GhostButton onClick={() => navigate("/checkout/identify")}>
           {t("menu.checkout")}
         </GhostButton>
-        <GhostButton>{t("menu.info")}</GhostButton>
-        <GhostButton>{t("menu.reception")}</GhostButton>
+        <GhostButton
+          onClick={() =>
+            toast(t("menu.info_soon"), { description: t("a11y.todo_desc") })
+          }
+        >
+          {t("menu.info")}
+        </GhostButton>
+        <GhostButton
+          onClick={() =>
+            toast(t("menu.reception_called"), {
+              description: t("menu.reception_desc"),
+            })
+          }
+        >
+          {t("menu.reception")}
+        </GhostButton>
         {isReturningGuest && (
           <GhostButton onClick={() => navigate("/my-profile")}>
             <span className="inline-flex items-center gap-2 justify-center">

@@ -18,6 +18,7 @@ import {
   simulateIoTCommand,
 } from "@/lib/personalization/iotSimulator";
 import { logConsent, clearConsentHistory } from "@/lib/personalization/consent";
+import { isDemoMode } from "@/lib/api/config";
 
 const PROFILE_KEY = "smartstay_profile";
 const RETURNING_KEY = "smartstay_is_returning";
@@ -52,16 +53,16 @@ const loadProfile = (): GuestProfile | null => {
   } catch {
     // ignore
   }
-  return mockReturningGuest;
+  return isDemoMode() ? mockReturningGuest : null;
 };
 
 const loadReturning = (): boolean => {
   try {
     const raw = localStorage.getItem(RETURNING_KEY);
-    if (raw === null) return true;
+    if (raw === null) return isDemoMode();
     return raw === "true";
   } catch {
-    return true;
+    return isDemoMode();
   }
 };
 
@@ -122,7 +123,9 @@ export const PersonalizationProvider = ({ children }: { children: ReactNode }) =
     (cat, patch) => {
       setProfileState((prev) => {
         if (!prev) return prev;
-        const current = (prev.preferences[cat] ?? {}) as any;
+        const current = (prev.preferences[cat] ?? {}) as NonNullable<
+          GuestProfile["preferences"][typeof cat]
+        >;
         return {
           ...prev,
           preferences: {

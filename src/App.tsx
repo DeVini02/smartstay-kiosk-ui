@@ -36,6 +36,7 @@ import TestErrors from "./pages/TestErrors";
 import TestAllScreens from "./pages/TestAllScreens";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+import { areDebugRoutesEnabled } from "@/lib/api/config";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +54,7 @@ const EscToHome = () => {
 
 const AnimatedRoutes = () => {
   const location = useLocation();
+  const debugRoutes = areDebugRoutesEnabled();
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
@@ -75,9 +77,9 @@ const AnimatedRoutes = () => {
         <Route path="/room-preparing" element={<RoomPreparing />} />
         <Route path="/my-profile" element={<MyProfile />} />
         <Route path="/first-stay-onboarding" element={<FirstStayOnboarding />} />
-        <Route path="/test/errors" element={<TestErrors />} />
-        <Route path="/test/all-screens" element={<TestAllScreens />} />
-        <Route path="/admin" element={<Admin />} />
+        {debugRoutes && <Route path="/test/errors" element={<TestErrors />} />}
+        {debugRoutes && <Route path="/test/all-screens" element={<TestAllScreens />} />}
+        {debugRoutes && <Route path="/admin" element={<Admin />} />}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AnimatePresence>

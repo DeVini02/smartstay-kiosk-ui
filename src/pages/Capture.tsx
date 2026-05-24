@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { User } from "lucide-react";
@@ -6,70 +6,96 @@ import { ScreenShell } from "@/components/ScreenShell";
 import { GlassCard } from "@/components/GlassCard";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { GhostButton } from "@/components/GhostButton";
+import { FaceNotRecognized } from "@/components/errors/FaceNotRecognized";
+import { NoConnection } from "@/components/errors/NoConnection";
 import { breathingDot, pulseRing } from "@/lib/animations";
 import { useCheckIn } from "@/context/CheckInContext";
 import { useT } from "@/lib/i18n";
-import { isApiEnabled } from "@/lib/api/config";
+import { isApiEnabled, isDemoMode } from "@/lib/api/config";
 import { postCheckInFace } from "@/lib/api/client";
 import { usePersonalization } from "@/contexts/PersonalizationContext";
+import { useCameraPreview } from "@/hooks/useCameraPreview";
 
 const Capture = () => {
   const navigate = useNavigate();
   const t = useT();
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [cameraOk, setCameraOk] = useState<boolean | null>(null);
+  const {
+    videoRef,
+    status: cameraStatus,
+    isReady: cameraReady,
+    retry: retryCamera,
+    stopCamera,
+  } = useCameraPreview();
+  const [faceError, setFaceError] = useState(false);
+  const [offline, setOffline] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const { setFaceCaptureCompleted, checkInSessionId } = useCheckIn();
-  const { setIsReturningGuest } = usePersonalization();
+  const { profile, setIsReturningGuest } = usePersonalization();
+  const cameraUnavailable = cameraStatus === "unavailable";
 
-  const goProcessing = async () => {
+  const goProcessing = useCallback(async () => {
+    if (submitting) return;
+    setSubmitting(true);
+    setFaceError(false);
+    setOffline(false);
     if (isApiEnabled() && checkInSessionId) {
       try {
-        const face = await postCheckInFace(checkInSessionId);
-        setIsReturningGuest(face.is_returning_guest);
-      } catch {
-        // continua fluxo mesmo se API falhar no MVP
-      }
-    }
-    setFaceCaptureCompleted(true);
-    navigate("/processing");
-  };
-
-  useEffect(() => {
-    let stream: MediaStream | null = null;
-    let cancelled = false;
-    (async () => {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "user" },
-          audio: false,
-        });
-        if (cancelled) {
-          stream.getTracks().forEach((tr) => tr.stop());
+        const face = await postCheckInFace(checkInSessionId, profile?.faceEmbeddingId);
+        if (!face.verified) {
+          stopCamera();
+          setFaceError(true);
+          setSubmitting(false);
           return;
         }
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          await videoRef.current.play().catch(() => {});
-        }
-        setCameraOk(true);
+        setIsReturningGuest(face.is_returning_guest);
       } catch {
-        setCameraOk(false);
+        if (!isDemoMode()) {
+          stopCamera();
+          setOffline(true);
+          setSubmitting(false);
+          return;
+        }
       }
-    })();
-
-    return () => {
-      cancelled = true;
-      stream?.getTracks().forEach((tr) => tr.stop());
-    };
-  }, []);
+    }
+    stopCamera();
+    setFaceCaptureCompleted(true);
+    navigate("/processing");
+  }, [
+    checkInSessionId,
+    navigate,
+    profile?.faceEmbeddingId,
+    setFaceCaptureCompleted,
+    setIsReturningGuest,
+    stopCamera,
+    submitting,
+  ]);
 
   useEffect(() => {
-    if (cameraOk !== true) return;
+    if (!cameraReady || submitting) return;
     const tm = setTimeout(() => {
       void goProcessing();
     }, 4000);
     return () => clearTimeout(tm);
-  }, [cameraOk]);
+  }, [cameraReady, goProcessing, submitting]);
+
+  if (offline) {
+    return (
+      <ScreenShell step={{ total: 6, current: 6, accent: "warn" }} status="warn">
+        <NoConnection onReception={() => navigate("/menu")} />
+      </ScreenShell>
+    );
+  }
+
+  if (faceError) {
+    return (
+      <ScreenShell step={{ total: 6, current: 6, accent: "warn" }} status="warn">
+        <FaceNotRecognized
+          onUseCode={() => navigate("/reservation")}
+          onReception={() => navigate("/menu")}
+        />
+      </ScreenShell>
+    );
+  }
 
   return (
     <ScreenShell step={{ total: 6, current: 6 }}>
@@ -104,16 +130,17 @@ const Capture = () => {
                 "radial-gradient(circle, rgba(167,139,250,0.35) 0%, rgba(167,139,250,0) 70%)",
             }}
           >
-            {cameraOk && (
-              <video
-                ref={videoRef}
-                playsInline
-                muted
-                className="absolute inset-0 w-full h-full object-cover"
-                style={{ transform: "scaleX(-1)" }}
-              />
-            )}
-            {cameraOk === false && (
+            <video
+              ref={videoRef}
+              playsInline
+              autoPlay
+              muted
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity ${
+                cameraReady ? "opacity-100" : "opacity-0"
+              }`}
+              style={{ transform: "scaleX(-1)" }}
+            />
+            {cameraUnavailable && (
               <div className="absolute inset-0 flex items-center justify-center text-small text-text-secondary px-4 text-center">
                 {t("cap.unavailable")}
               </div>
@@ -121,8 +148,9 @@ const Capture = () => {
 
             <User
               size={64}
-              className="absolute inset-0 m-auto text-white"
-              style={{ opacity: 0.4 }}
+              className={`absolute inset-0 m-auto text-white transition-opacity ${
+                cameraReady ? "opacity-0" : "opacity-40"
+              }`}
               aria-hidden="true"
             />
 
@@ -162,8 +190,20 @@ const Capture = () => {
       </GlassCard>
 
       <div className="flex flex-col gap-3">
-        <PrimaryButton onClick={() => void goProcessing()}>{t("cap.capture_now")}</PrimaryButton>
-        <GhostButton onClick={() => navigate("/lgpd")}>{t("common.cancel")}</GhostButton>
+        <PrimaryButton disabled={submitting} onClick={() => void goProcessing()}>
+          {submitting ? t("common.loading") : t("cap.capture_now")}
+        </PrimaryButton>
+        {cameraUnavailable && (
+          <GhostButton onClick={() => void retryCamera()}>{t("common.try_again")}</GhostButton>
+        )}
+        <GhostButton
+          onClick={() => {
+            stopCamera();
+            navigate("/lgpd");
+          }}
+        >
+          {t("common.cancel")}
+        </GhostButton>
       </div>
     </ScreenShell>
   );

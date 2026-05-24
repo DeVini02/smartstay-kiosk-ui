@@ -71,7 +71,6 @@ def persist_iot_commands(
             completed_at=cmd.timestamp,
         )
         db.add(log)
-    db.commit()
 
 
 async def apply_guest_preferences(

@@ -15,7 +15,6 @@ class PmsService:
   @staticmethod
   def sync_reservation_status(db: Session, reservation: Reservation, status: str) -> None:
       reservation.status = status
-      db.commit()
 
   @staticmethod
   def notify_room_ready(db: Session, reservation: Reservation) -> dict:
@@ -30,7 +29,6 @@ class PmsService:
   def finalize_checkout(db: Session, reservation: Reservation, guest: Guest) -> dict:
       reservation.status = "checked_out"
       guest.total_stays = (guest.total_stays or 0) + 1
-      db.commit()
       return {
           "pms_event": "checkout_complete",
           "reservation_id": reservation.id,

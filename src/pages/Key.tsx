@@ -5,16 +5,42 @@ import { ScreenShell } from "@/components/ScreenShell";
 import { GlassCard } from "@/components/GlassCard";
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { StatusBadge } from "@/components/StatusBadge";
+import { GenericError } from "@/components/errors/GenericError";
 import { useCheckIn } from "@/context/CheckInContext";
 import { useT } from "@/lib/i18n";
 import { usePersonalization } from "@/contexts/PersonalizationContext";
+import { isDemoMode } from "@/lib/api/config";
 
 const Key = () => {
   const navigate = useNavigate();
   const t = useT();
   const { reservation, qrPayload } = useCheckIn();
   const { isReturningGuest } = usePersonalization();
-  const r = reservation!;
+  if (!reservation) {
+    return (
+      <ScreenShell>
+        <GenericError
+          errorCode="KEY-NO-RESERVATION"
+          onHome={() => navigate("/reservation")}
+          onReception={() => navigate("/menu")}
+        />
+      </ScreenShell>
+    );
+  }
+
+  if (!qrPayload && !isDemoMode()) {
+    return (
+      <ScreenShell>
+        <GenericError
+          errorCode="KEY-MISSING"
+          onHome={() => navigate("/processing")}
+          onReception={() => navigate("/menu")}
+        />
+      </ScreenShell>
+    );
+  }
+
+  const r = reservation;
   const firstName = r.guestName.split(" ")[0].replace(".", "");
   const finishTo = isReturningGuest ? "/goodbye" : "/first-stay-onboarding";
 

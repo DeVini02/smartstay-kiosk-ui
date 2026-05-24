@@ -1,10 +1,11 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ScreenShell } from "@/components/ScreenShell";
+import { GenericError } from "@/components/errors/GenericError";
 import { useT } from "@/lib/i18n";
 import { usePersonalization } from "@/contexts/PersonalizationContext";
 import { useCheckIn } from "@/context/CheckInContext";
-import { isApiEnabled } from "@/lib/api/config";
+import { isApiEnabled, isDemoMode } from "@/lib/api/config";
 import { completeCheckIn } from "@/lib/api/client";
 
 const Processing = () => {
@@ -12,6 +13,7 @@ const Processing = () => {
   const t = useT();
   const { isReturningGuest, profile, applyPreferences } = usePersonalization();
   const { checkInSessionId, setQrPayload } = useCheckIn();
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -25,7 +27,10 @@ const Processing = () => {
             await applyPreferences();
           }
         } catch {
-          // fallback: segue fluxo visual
+          if (!isDemoMode()) {
+            setError(true);
+            return;
+          }
         }
       }
 
@@ -49,6 +54,18 @@ const Processing = () => {
     setQrPayload,
     applyPreferences,
   ]);
+
+  if (error) {
+    return (
+      <ScreenShell showHeader={false}>
+        <GenericError
+          errorCode="CHECKIN-COMPLETE"
+          onHome={() => navigate("/menu")}
+          onReception={() => navigate("/menu")}
+        />
+      </ScreenShell>
+    );
+  }
 
   return (
     <ScreenShell showHeader={false}>

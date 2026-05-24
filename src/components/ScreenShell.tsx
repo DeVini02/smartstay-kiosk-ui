@@ -24,15 +24,15 @@ export const ScreenShell = ({
   return (
     <TotemFrame>
       <AmbientBackground />
-      <AccessibilityFAB />
-      <div className="relative z-10 flex flex-col h-full">
+      {!showHeader && <AccessibilityFAB />}
+      <div className="relative z-10 flex flex-col h-full min-h-0">
         {showHeader && <ScreenHeader step={step} status={status} />}
         <motion.section
           variants={screenTransition}
           initial="hidden"
           animate="visible"
           exit="exit"
-          className={`flex-1 flex flex-col px-6 pb-6 ${contentClassName}`}
+          className={`flex-1 min-h-0 flex flex-col overflow-y-auto overscroll-contain touch-pan-y scrollbar-hidden px-6 pb-8 [-webkit-overflow-scrolling:touch] ${contentClassName}`}
         >
           {children}
         </motion.section>
