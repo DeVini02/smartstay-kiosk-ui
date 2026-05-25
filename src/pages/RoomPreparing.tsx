@@ -72,82 +72,87 @@ const RoomPreparing = () => {
           }}
           aria-hidden="true"
         >
-          {/* Ambient inner glow that grows with completed devices */}
           <motion.div
             className="absolute inset-0"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 0.15 + done * 0.08 }}
+            animate={{ opacity: 0.12 + done * 0.06 }}
             transition={{ duration: 0.8 }}
             style={{
               background:
-                "radial-gradient(circle at 50% 40%, rgba(251,191,36,0.18), transparent 70%)",
+                "radial-gradient(circle at 50% 44%, rgba(94,234,212,0.16), transparent 62%)",
             }}
           />
 
-          {/* Lights (top) */}
-          {[0.32, 0.62].map((x, i) => (
+          {[0.32, 0.68].map((x, i) => (
             <motion.span
               key={i}
               className="absolute"
               style={{
-                top: "12%",
+                top: "14%",
                 left: `${x * 100}%`,
-                width: 14,
-                height: 14,
+                width: 8,
+                height: 8,
                 borderRadius: "50%",
                 transform: "translate(-50%, -50%)",
                 background:
-                  "radial-gradient(circle, #FBBF24 0%, rgba(251,191,36,0.4) 60%, transparent 100%)",
+                  "radial-gradient(circle, #FCD34D 0%, rgba(251,191,36,0.55) 48%, transparent 100%)",
               }}
-              initial={{ opacity: 0.3, boxShadow: "0 0 0px rgba(251,191,36,0)" }}
+              initial={{ opacity: 0.15, boxShadow: "0 0 0px rgba(251,191,36,0)" }}
               animate={{
-                opacity: 1,
-                boxShadow: "0 0 14px rgba(251,191,36,0.85)",
+                opacity: [0.55, 1, 0.75],
+                boxShadow: [
+                  "0 0 8px rgba(251,191,36,0.4)",
+                  "0 0 16px rgba(251,191,36,0.75)",
+                  "0 0 10px rgba(251,191,36,0.45)",
+                ],
               }}
-              transition={{ duration: 1.2, delay: 0 + i * 0.2 }}
+              transition={{
+                duration: 2,
+                delay: i * 0.18,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
             />
           ))}
 
-          {/* AC unit (top-center) */}
           <motion.div
             className="absolute"
             style={{
-              top: "6%",
+              top: "7%",
               left: "50%",
               transform: "translateX(-50%)",
               width: "30%",
-              height: 6,
+              height: 5,
               borderRadius: 4,
-              background: "linear-gradient(180deg, #2dd4bf, #0f766e)",
+              background: "linear-gradient(90deg, #2dd4bf, #14b8a6, #2dd4bf)",
+              boxShadow: "0 0 14px rgba(45,212,191,0.45)",
             }}
             initial={{ opacity: 0.3 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 1, delay: 1.5 }}
           />
-          {/* Air streams */}
           <motion.div
             className="absolute"
             style={{
-              top: "9%",
+              top: "10%",
               left: "50%",
               transform: "translateX(-50%)",
-              width: "26%",
-              height: "30%",
+              width: "22%",
+              height: "28%",
               background:
-                "linear-gradient(180deg, rgba(94,234,212,0.45), transparent)",
-              filter: "blur(2px)",
+                "linear-gradient(180deg, rgba(94,234,212,0.2), rgba(94,234,212,0.03), transparent)",
+              filter: "blur(6px)",
             }}
             initial={{ opacity: 0 }}
-            animate={{ opacity: [0, 0.7, 0] }}
+            animate={{ opacity: [0.15, 0.42, 0.18] }}
             transition={{
-              duration: 2.2,
+              duration: 2.8,
               delay: 1.8,
               repeat: Infinity,
               ease: "easeInOut",
             }}
           />
 
-          {/* Bed (bottom-left) */}
           <div
             className="absolute"
             style={{
@@ -158,10 +163,10 @@ const RoomPreparing = () => {
               borderRadius: 6,
               background: "rgba(255,255,255,0.08)",
               border: "1px solid rgba(255,255,255,0.15)",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.08)",
             }}
           />
 
-          {/* Window with curtain (right) */}
           <div
             className="absolute"
             style={{
@@ -171,7 +176,7 @@ const RoomPreparing = () => {
               height: "40%",
               borderRadius: 2,
               background:
-                "linear-gradient(180deg, rgba(167,139,250,0.4), rgba(94,234,212,0.3))",
+                "linear-gradient(180deg, rgba(167,139,250,0.35), rgba(94,234,212,0.28))",
             }}
           />
           <motion.div
@@ -182,12 +187,12 @@ const RoomPreparing = () => {
               width: 8,
               height: "40%",
               borderRadius: 2,
-              background: "rgba(255,255,255,0.25)",
+              background: "rgba(199,210,254,0.26)",
               transformOrigin: "top",
             }}
             initial={{ scaleY: 1 }}
-            animate={{ scaleY: 0.4 }}
-            transition={{ duration: 2, delay: 3, ease: "easeInOut" }}
+            animate={{ scaleY: [1, 0.55, 0.4] }}
+            transition={{ duration: 2.4, delay: 3, ease: "easeInOut" }}
           />
           <span
             className="absolute font-mono text-text-tertiary"
@@ -233,7 +238,7 @@ const RoomPreparing = () => {
               <span className="flex-1 text-small text-text-primary truncate">
                 {row.label}
               </span>
-              <span className="text-mono-tiny text-text-tertiary">
+              <span className="text-mono-tiny text-text-tertiary min-w-[64px] text-right">
                 {status === "completed"
                   ? t("p.prep.ok")
                   : status === "in_progress"
